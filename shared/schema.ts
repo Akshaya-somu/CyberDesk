@@ -1,18 +1,51 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+// Export Auth and Chat models so they are available
+export * from "./models/auth";
+export * from "./models/chat";
+
+import { users } from "./models/auth";
+
+// === REPORTS TABLE ===
+export const reports = pgTable("reports", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").references(() => users.id), // Use text to match Auth user ID type (varchar)
+  title: text("title").notNull(),
+  rawDescription: text("raw_description").notNull(),
+  incidentType: text("incident_type").notNull(), // e.g. "phishing", "financial_fraud", "identity_theft"
+  structuredReport: jsonb("structured_report").notNull(), // JSON object with FIR fields
+  status: text("status").notNull().default("draft"), // draft, finalized
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertReportSchema = createInsertSchema(reports).omit({ 
+  id: true, 
+  createdAt: true 
 });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type Report = typeof reports.$inferSelect;
+export type InsertReport = z.infer<typeof insertReportSchema>;
+
+// === API TYPES ===
+export type CreateReportRequest = {
+  title: string;
+  rawDescription: string;
+};
+
+export type GenerateReportResponse = {
+  incidentType: string;
+  structuredReport: {
+    incidentType: string;
+    description: string;
+    modeOfAttack: string;
+    impact: string;
+    suggestedCategory: string;
+    nextSteps: string[];
+  };
+};
+
+export type ReportResponse = Report;
