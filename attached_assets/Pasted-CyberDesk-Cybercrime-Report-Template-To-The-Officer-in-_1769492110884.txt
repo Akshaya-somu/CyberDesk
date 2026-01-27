@@ -1,0 +1,162 @@
+CyberDesk
+
+Cybercrime Report Template
+To: The Officer-in-Charge, Cyber Cell / [Local Police Station Name]
+Subject: Complaint regarding [Type of Crime, e.g., Financial Fraud, Identity Theft, Hacking]
+Complainant Details: Full Name, Age, Address, and Contact Number.
+Incident Summary:
+Date and Time: When the incident occurred or when you first noticed it.
+Platform: Where it happened (e.g., WhatsApp, Email, Instagram, Net Banking).
+Suspect Details: Name, Phone Number, or ID used by the perpetrator (if known).
+Chronological Description: A step-by-step account of what happened.
+Loss/Impact: Specific details of financial loss or data compromised.
+Evidence List: Mention attached screenshots, transaction IDs, or emails.
+Prayer/Request: A request to register the FIR and take legal action.
+Example: Financial Fraud (Vishing/Phishing)
+To: The Head of Cyber Crimes Department, [City/State]
+Subject: Complaint regarding illegal money transfer of Rs. 50,000/- via Phishing.
+Respected Sir/Madam,
+I, [Your Name], resident of [Your Address], wish to report a fraudulent transaction on my account. On January 20, 2026, at 2:30 PM, I received a call from +91-XXXXX-XXXXX. The caller identified himself as a representative of [Bank Name] and stated my KYC needed urgent updating.
+He sent a link via SMS that looked like the official bank portal. After I entered my details, I received an OTP which he asked me to share to "validate the update." Within minutes, Rs. 50,000 was debited from my account.
+Details of the incident:
+Date/Time: 20/01/2026, 2:30 PM.
+Transaction ID: 1234567890.
+Suspect Number: +91-XXXXX-XXXXX.
+Evidence: Attached screenshots of the phishing SMS, the call log, and the bank statement.
+I request you to register this complaint and take necessary action under the relevant sections of the IT Act and IPC to recover my funds and apprehend the culprit.
+Yours sincerely,
+[Your Signature]
+[Date] cyber crime report style and format should be changed
+
+Update the CyberDesk – Cyber Incident Reporting and Support system to improve the crime report generation logic so that missing or unknown details are handled gracefully.
+
+Requirements:
+
+When generating the FIR-style cyber incident report, do NOT display placeholders such as [address], [date], [location], [unknown], or similar text if the user has not provided that information.
+
+If a particular detail (e.g., address, exact date, device details, loss amount) is not mentioned by the user, the system should:
+
+Either omit that field completely from the report, OR
+
+Replace it with a neutral phrase such as:
+
+“Not provided by the complainant”
+
+“Information not available at the time of reporting”
+
+The report should only include details that are explicitly mentioned or confidently inferred from the user’s input.
+
+Implement a conditional field-rendering logic, where each section of the report is added only if the corresponding information exists.
+
+Ensure the final report looks like a clean, formal FIR-style document, without any empty brackets, placeholders, or template artifacts.
+
+Add inline comments in the code explaining how missing data is checked and handled, so the logic is easy to explain during a viva examination.
+
+🔹 Optional Follow-up Prompt (Recommended)
+
+After Replit updates it, also say:
+
+“Please refactor the report generation function so that it dynamically builds the report based on available fields instead of using a fixed template.”
+
+This ensures no [field] ever appears again.
+
+🧠 How you explain this in viva (1 line)
+
+“We implemented conditional report generation so that missing user details are not shown as placeholders, ensuring the report remains clean, realistic, and suitable for official submission.”Extend the existing CyberDesk – Cyber Incident Reporting and Support application by adding a dedicated Crime Incident Response module.
+
+The Incident Response module must work as follows:
+
+Incident Classification:
+After the user submits a cyber incident description, analyze the text using NLP to classify the incident into categories such as phishing, online financial fraud, social media account hacking, email compromise, or identity theft.
+
+Incident-Specific Response Logic:
+Based on the detected incident type, display structured, step-by-step response instructions.
+
+The response steps should be different for each incident category and must include:
+
+Immediate containment actions (e.g., disconnect internet, block cards)
+
+Account and system security actions (password reset, enabling 2FA)
+
+Evidence preservation steps (screenshots, logs, transaction details)
+
+Reporting and recovery guidance (contacting banks, platforms, cyber crime portals)
+
+Rule-Based + AI Guidance:
+Implement a rule-based decision structure that maps each incident type to predefined response steps.
+
+Use Generative AI only to explain the steps clearly in natural language, not to invent new actions.
+
+User Interface Requirements:
+Display the Incident Response steps in a clear, numbered list.
+
+Clearly label sections such as Immediate Actions, Secure Your Accounts, Preserve Evidence, and Next Steps.
+
+Add a disclaimer stating that the guidance is for awareness and assistance only.
+
+Code Requirements:
+Implement the logic in a separate backend file (e.g., incident_response.py).
+
+Keep the code simple, readable, and well-commented for a college cyber security project.
+
+I've refactored the report generation to be dynamic and added the Incident Response module. How does the new FIR-style report and guidance look to you?
+
+Ready to share? Publish this App in one click.
+Autoscale Deployment
+Primary URL
+cyber-desk-guard--somuakshaya14
+.replit.app
+Extend the existing CyberDesk – Cyber Incident Reporting and Support application by adding a dedicated Crime Incident Response module.
+
+The Incident Response module must work as follows:
+
+Incident Classification:
+After the user submits a cyber incident description, analyze the text using NLP to classify the incident into categories such as phishing, online financial fraud, social media account hacking, email compromise, or identity theft.
+
+Incident-Specific Response Logic:
+Based on the detected incident type, display structured, step-by-step response instructions.
+
+The response steps should be different for each incident category and must include:
+
+Immediate containment actions (e.g., disconnect internet, block cards)
+
+Account and system security actions (password reset, enabling 2FA)
+
+Evidence preservation steps (screenshots, logs, transaction details)
+
+Reporting and recovery guidance (contacting banks, platforms, cyber crime portals)
+
+Rule-Based + AI Guidance:
+Implement a rule-based decision structure that maps each incident type to predefined response steps.
+
+Use Generative AI only to explain the steps clearly in natural language, not to invent new actions.
+
+User Interface Requirements:
+Display the Incident Response steps in a clear, numbered list.
+
+Clearly label sections such as Immediate Actions, Secure Your Accounts, Preserve Evidence, and Next Steps.
+
+Add a disclaimer stating that the guidance is for awareness and assistance only.
+
+Code Requirements:
+Implement the logic in a separate backend file (e.g., incident_response.py).
+
+Keep the code simple, readable, and well-commented for a college cyber security project.
+
+The feature should integrate seamlessly with the existing report generation workflow and activate automatically after a cyber incident is detected.
+
+I've implemented the Crime Incident Response module with dynamic report generation. How does the automated guidance look?
+
+i cant find the module in dashboard
+
+I've added a "Quick Response Ready" preview to the dashboard cards so you can see immediate actions right away. Does this help you find the module more easily?
+
+no not that along with chatbot and crime report generation there is another module in cyberdesk which is incident reponse when an incident happens it tells about Many users panic or take incorrect actions, which can lead to further damage. This module provides structured, incident-specific guidance to help users:
+
+reduce further loss,
+
+secure compromised accounts,
+
+preserve digital evidence,
+
+and report the incident correctly.

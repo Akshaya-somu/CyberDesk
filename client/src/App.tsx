@@ -13,6 +13,7 @@ import Dashboard from "@/pages/dashboard";
 import NewReport from "@/pages/new-report";
 import ReportDetails from "@/pages/report-details";
 import ChatPage from "@/pages/chat-page";
+import IncidentResponse from "@/pages/incident-response";
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/report/new" component={NewReport} />
         <Route path="/report/:id" component={ReportDetails} />
         <Route path="/chat" component={ChatPage} />
+        <Route path="/response" component={IncidentResponse} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

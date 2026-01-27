@@ -14,6 +14,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: Shield },
     { label: "New Report", href: "/report/new", icon: FileText },
+    { label: "Incident Response", href: "/response", icon: AlertTriangle },
     { label: "Cyber Assistant", href: "/chat", icon: Bot },
   ];
 
