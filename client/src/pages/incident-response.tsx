@@ -175,13 +175,7 @@ export default function IncidentResponse() {
               </div>
             </div>
 
-            {!analysis.guidance ? (
-              <div className="p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  The incident type could not be clearly identified. Please provide more details or chat with our assistant for personalized help.
-                </p>
-              </div>
-            ) : (
+            {analysis.guidance && (
               <div className="grid md:grid-cols-2 gap-8">
                 <section className="bg-red-500/5 p-6 rounded-2xl border border-red-500/10">
                   <h4 className="font-bold text-red-600 mb-4 flex items-center gap-2">
@@ -191,7 +185,7 @@ export default function IncidentResponse() {
                     {analysis.guidance.immediate.map((s: string, i: number) => (
                       <li key={i} className="flex gap-3 text-sm items-start">
                         <span className="w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">{i+1}</span>
-                        <span>{s}</span>
+                        <span className="text-foreground/90">{s}</span>
                       </li>
                     ))}
                   </ul>
@@ -205,7 +199,7 @@ export default function IncidentResponse() {
                     {analysis.guidance.security.map((s: string, i: number) => (
                       <li key={i} className="flex gap-3 text-sm items-start">
                         <span className="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">{i+1}</span>
-                        <span>{s}</span>
+                        <span className="text-foreground/90">{s}</span>
                       </li>
                     ))}
                   </ul>
@@ -219,7 +213,7 @@ export default function IncidentResponse() {
                     {analysis.guidance.evidence.map((s: string, i: number) => (
                       <li key={i} className="flex gap-3 text-sm items-start">
                         <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">{i+1}</span>
-                        <span>{s}</span>
+                        <span className="text-foreground/90">{s}</span>
                       </li>
                     ))}
                   </ul>
@@ -233,7 +227,7 @@ export default function IncidentResponse() {
                     {analysis.guidance.nextSteps.map((s: string, i: number) => (
                       <li key={i} className="flex gap-3 text-sm items-start">
                         <span className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5">{i+1}</span>
-                        <span>{s}</span>
+                        <span className="text-foreground/90">{s}</span>
                       </li>
                     ))}
                   </ul>

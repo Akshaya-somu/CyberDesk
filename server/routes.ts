@@ -127,15 +127,18 @@ export async function registerRoutes(
       const structuredData = JSON.parse(responseContent);
       
       // INCIDENT RESPONSE MODULE:
-      // Map the detected incident type to our rule-based response steps.
-      // This ensures consistent, expert-vetted guidance for each category.
-      const category = structuredData.incidentType.toLowerCase();
+      // We map the detected incident to expert-vetted guidance.
+      // We use a more robust matching strategy to ensure the user gets help even if the AI's label varies slightly.
+      let category = (structuredData.incidentType || "").toLowerCase();
       
-      // Step 3: Decide Whether to Respond
-      // If the incident type is uncertain (classified as "other" or "general"), 
-      // we inform the user that more details are needed for specific guidance.
-      const isUncertain = category.includes("other") || category.includes("general") || category.includes("unknown");
+      // Standardize the category for better matching
+      if (category.includes("phish")) category = "phishing";
+      else if (category.includes("fraud") || category.includes("money") || category.includes("bank")) category = "financial_fraud";
+      else if (category.includes("hack") || category.includes("compromise")) category = "account_hacking";
+      else if (category.includes("identity") || category.includes("theft")) category = "identity_theft";
+      else if (category.includes("email")) category = "email_compromise";
       
+      const isUncertain = !category || category === "other" || category === "unknown";
       const guidance = isUncertain ? null : getResponseGuidance(category);
 
       // Dynamic report building logic:
