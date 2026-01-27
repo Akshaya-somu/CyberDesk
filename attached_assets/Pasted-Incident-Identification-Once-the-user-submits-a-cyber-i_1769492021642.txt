@@ -1,0 +1,125 @@
+Incident Identification
+
+Once the user submits a cyber incident description, the system:
+
+analyzes the input using NLP,
+
+identifies the type of cyber crime, such as:
+
+phishing
+
+online financial fraud
+
+social media account hacking
+
+email compromise
+
+identity theft
+
+This classification determines the response strategy.
+
+3️⃣ Incident Response Workflow
+
+The response process is divided into four structured phases, inspired by standard cyber security incident response practices.
+
+4️⃣ Phase 1: Immediate Containment
+
+In this phase, CyberDesk instructs the user to stop further damage.
+
+Examples:
+
+Disconnect affected devices from the internet
+
+Avoid clicking additional suspicious links
+
+Log out of compromised accounts
+
+Block bank cards or payment methods if financial fraud is detected
+
+The goal is to contain the incident quickly.
+
+5️⃣ Phase 2: Account & System Security
+
+After containment, the system provides guidance to secure user accounts and devices, such as:
+
+Changing passwords for affected and linked accounts
+
+Enabling two-factor authentication (2FA)
+
+Checking recent login activity
+
+Updating security settings on platforms like email, banking, or social media
+
+This prevents attackers from regaining access.
+
+6️⃣ Phase 3: Evidence Preservation
+
+CyberDesk emphasizes the importance of digital evidence for investigation and reporting. The user is guided to:
+
+Take screenshots of suspicious messages, emails, or transactions
+
+Save URLs, email headers, and timestamps
+
+Preserve transaction receipts or bank alerts
+
+Avoid deleting important messages related to the incident
+
+This evidence supports official complaints and investigations.
+
+7️⃣ Phase 4: Reporting & Recovery Guidance
+
+In the final phase, the system advises the user to:
+
+Submit the generated report to the appropriate cyber crime portal
+
+Contact banks, service providers, or platforms involved
+
+Monitor accounts for unusual activity
+
+Follow up on complaints and reset credentials if required
+
+This phase focuses on recovery and official action.
+
+8️⃣ Incident-Specific Response Examples
+🔹 Phishing Attack
+
+Change passwords immediately
+
+Enable 2FA
+
+Report the phishing message
+
+Monitor financial activity
+
+🔹 Online Financial Fraud
+
+Block debit/credit cards
+
+Inform the bank immediately
+
+Save transaction details
+
+File a cyber crime report
+
+🔹 Social Media Account Hacking
+
+Reset passwords
+
+Revoke suspicious app access
+
+Inform contacts about possible misuse
+
+Recover account through official platform support
+
+9️⃣ How the System Delivers Responses
+
+CyberDesk uses:
+
+rule-based decision logic for incident types,
+
+AI-generated guidance for clarity and personalization,
+
+step-by-step instructions displayed in simple language.
+
+This ensures consistency and ease of understanding for non-technical users.
+
