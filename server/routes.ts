@@ -135,42 +135,22 @@ export async function registerRoutes(
       const fullText = (category + " " + (structuredData.description || "") + " " + description).toLowerCase();
       
       if (fullText.includes("phish") || fullText.includes("link") || fullText.includes("sms")) category = "phishing";
-      else if (fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp") || fullText.includes("debit") || fullText.includes("rs.")) category = "financial_fraud";
-      else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook")) category = "account_hacking";
+      else if (fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp") || fullText.includes("debit") || fullText.includes("rs.") || fullText.includes("rupees")) category = "financial_fraud";
+      else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook") || fullText.includes("account")) category = "account_hacking";
       else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat")) category = "identity_theft";
       else if (fullText.includes("email")) category = "email_compromise";
       
       const isUncertain = !category || category === "other" || category === "unknown";
       const guidance = isUncertain ? null : getResponseGuidance(category);
 
-      // Dynamic report building logic:
-      // We check for available fields in extractedDetails to avoid displaying empty placeholders.
-      // This makes the report professional and ready for official use.
-      let reportLines = [
-        "Cybercrime Report Template",
-        "To: The Officer-in-Charge, Cyber Cell",
-        `Subject: Complaint regarding ${structuredData.incidentType}`
-      ];
-
-      // Conditional rendering: only add fields if AI found them in the user input.
-      const details = structuredData.extractedDetails || {};
-      if (details.complainant_name) reportLines.push(`Complainant: ${details.complainant_name}`);
-      if (details.date) reportLines.push(`Date and Time: ${details.date}`);
-      if (details.platform) reportLines.push(`Platform: ${details.platform}`);
-      if (details.suspect_details) reportLines.push(`Suspect Details: ${details.suspect_details}`);
+      // Add a fallback for the AI response if guidance is still null but we matched a category
+      const finalGuidance = guidance;
       
-      reportLines.push("\nChronological Description:");
-      reportLines.push(structuredData.description);
-      
-      if (structuredData.impact) reportLines.push(`\nLoss/Impact: ${structuredData.impact}`);
-      
-      reportLines.push("\nPrayer/Request: I request you to register this complaint and take necessary action under the relevant sections of the IT Act and IPC to recover my funds/data and apprehend the culprit.");
-
-      structuredData.generatedReportText = reportLines.join("\n");
-      structuredData.guidance = guidance;
+      structuredData.guidance = finalGuidance;
+      structuredData.incidentType = category.toUpperCase();
 
       res.json({
-        incidentType: structuredData.incidentType,
+        incidentType: category,
         structuredReport: structuredData
       });
 
