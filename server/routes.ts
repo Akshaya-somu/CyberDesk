@@ -131,12 +131,14 @@ export async function registerRoutes(
       // We use a more robust matching strategy to ensure the user gets help even if the AI's label varies slightly.
       let category = (structuredData.incidentType || "").toLowerCase();
       
-      // Standardize the category for better matching
-      if (category.includes("phish")) category = "phishing";
-      else if (category.includes("fraud") || category.includes("money") || category.includes("bank")) category = "financial_fraud";
-      else if (category.includes("hack") || category.includes("compromise")) category = "account_hacking";
-      else if (category.includes("identity") || category.includes("theft")) category = "identity_theft";
-      else if (category.includes("email")) category = "email_compromise";
+      // Standardize the category for better matching based on keywords in description or AI result
+      const fullText = (category + " " + (structuredData.description || "")).toLowerCase();
+      
+      if (fullText.includes("phish") || fullText.includes("link") || fullText.includes("sms")) category = "phishing";
+      else if (fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp")) category = "financial_fraud";
+      else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook")) category = "account_hacking";
+      else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat")) category = "identity_theft";
+      else if (fullText.includes("email")) category = "email_compromise";
       
       const isUncertain = !category || category === "other" || category === "unknown";
       const guidance = isUncertain ? null : getResponseGuidance(category);
