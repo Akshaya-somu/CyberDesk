@@ -34,7 +34,7 @@ export default function ReportDetails() {
   }
 
   const structured = report.structuredReport as any;
-  const [activeTab, setActiveTab] = useState<"report" | "response">("report");
+  const [activeTab, setActiveTab] = useState<"report" | "response">(structured.guidance ? "response" : "report");
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">

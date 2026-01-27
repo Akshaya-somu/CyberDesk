@@ -104,7 +104,7 @@ export async function registerRoutes(
         If a detail is missing, omit it from the object or use the phrase "Information not available at the time of reporting".
 
         JSON fields to include:
-        - incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft] or "other".
+        - incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft, email_compromise].
         - description: A formal FIR summary. 
         - modeOfAttack: e.g. "SMS", "Phone Call" (if known).
         - impact: The loss or damage.
@@ -132,10 +132,10 @@ export async function registerRoutes(
       let category = (structuredData.incidentType || "").toLowerCase();
       
       // Standardize the category for better matching based on keywords in description or AI result
-      const fullText = (category + " " + (structuredData.description || "")).toLowerCase();
+      const fullText = (category + " " + (structuredData.description || "") + " " + description).toLowerCase();
       
       if (fullText.includes("phish") || fullText.includes("link") || fullText.includes("sms")) category = "phishing";
-      else if (fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp")) category = "financial_fraud";
+      else if (fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp") || fullText.includes("debit") || fullText.includes("rs.")) category = "financial_fraud";
       else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook")) category = "account_hacking";
       else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat")) category = "identity_theft";
       else if (fullText.includes("email")) category = "email_compromise";
