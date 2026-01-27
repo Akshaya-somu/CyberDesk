@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Shield, FileText, Bot, LogOut, Menu, X, User } from "lucide-react";
+import { Shield, FileText, Bot, LogOut, Menu, X, User, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";

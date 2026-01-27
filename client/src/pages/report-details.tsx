@@ -104,6 +104,18 @@ export default function ReportDetails() {
                     {structured.guidance.security.map((s: string, i: number) => <li key={i}>{s}</li>)}
                   </ul>
                 </section>
+                <section>
+                  <h4 className="text-sm font-bold uppercase text-orange-600 mb-2">Evidence Preservation</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    {structured.guidance.evidence.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                  </ul>
+                </section>
+                <section>
+                  <h4 className="text-sm font-bold uppercase text-orange-600 mb-2">Next Steps</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    {structured.guidance.nextSteps.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                  </ul>
+                </section>
               </div>
               <div className="mt-6 p-3 bg-muted/50 rounded text-xs text-muted-foreground italic">
                 Disclaimer: This guidance is for awareness and assistance only.
