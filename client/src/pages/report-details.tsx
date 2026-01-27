@@ -13,6 +13,14 @@ export default function ReportDetails() {
   const [, params] = useRoute("/report/:id");
   const id = params ? parseInt(params.id) : 0;
   const { data: report, isLoading } = useReport(id);
+  const [activeTab, setActiveTab] = useState<"report" | "response">("report");
+
+  useEffect(() => {
+    const structured = report?.structuredReport as any;
+    if (structured?.guidance) {
+      setActiveTab("response");
+    }
+  }, [report?.structuredReport]);
 
   if (isLoading) {
     return (
@@ -34,13 +42,7 @@ export default function ReportDetails() {
   }
 
   const structured = report.structuredReport as any;
-  const [activeTab, setActiveTab] = useState<"report" | "response">("report");
-
-  useEffect(() => {
-    if (structured?.guidance) {
-      setActiveTab("response");
-    }
-  }, [structured?.guidance]);
+  const guidance = structured?.guidance;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">
@@ -130,7 +132,7 @@ export default function ReportDetails() {
       ) : (
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {!structured.guidance && (
+            {!guidance && (
               <Card className="p-6 border-l-4 border-l-blue-500 shadow-sm bg-blue-50/50">
                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-blue-500" /> Guidance Note
@@ -142,7 +144,7 @@ export default function ReportDetails() {
               </Card>
             )}
 
-            {structured.guidance && (
+            {guidance && (
               <Card className="p-6 border-l-4 border-l-orange-500 shadow-sm">
                 <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
                   <AlertCircle className="w-5 h-5 text-orange-500" /> Incident-Specific Guidance
@@ -152,42 +154,50 @@ export default function ReportDetails() {
                 </p>
                 
                 <div className="grid gap-8">
-                  <section className="bg-red-500/5 p-4 rounded-xl border border-red-500/10">
-                    <h4 className="text-sm font-bold uppercase text-red-600 mb-3 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" /> Immediate Precautions (Containment)
-                    </h4>
-                    <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
-                      {structured.guidance.immediate.map((s: string, i: number) => <li key={i}>{s}</li>)}
-                    </ul>
-                  </section>
+                  {guidance.immediate && (
+                    <section className="bg-red-500/5 p-4 rounded-xl border border-red-500/10">
+                      <h4 className="text-sm font-bold uppercase text-red-600 mb-3 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" /> Immediate Precautions (Containment)
+                      </h4>
+                      <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                        {guidance.immediate.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                      </ul>
+                    </section>
+                  )}
 
-                  <section className="bg-orange-500/5 p-4 rounded-xl border border-orange-500/10">
-                    <h4 className="text-sm font-bold uppercase text-orange-600 mb-3 flex items-center gap-2">
-                      <Lock className="w-4 h-4" /> Security Actions
-                    </h4>
-                    <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
-                      {structured.guidance.security.map((s: string, i: number) => <li key={i}>{s}</li>)}
-                    </ul>
-                  </section>
+                  {guidance.security && (
+                    <section className="bg-orange-500/5 p-4 rounded-xl border border-orange-500/10">
+                      <h4 className="text-sm font-bold uppercase text-orange-600 mb-3 flex items-center gap-2">
+                        <Lock className="w-4 h-4" /> Security Actions
+                      </h4>
+                      <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                        {guidance.security.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                      </ul>
+                    </section>
+                  )}
 
                   <div className="grid md:grid-cols-2 gap-6">
-                    <section className="bg-blue-500/5 p-4 rounded-xl border border-blue-500/10">
-                      <h4 className="text-sm font-bold uppercase text-blue-600 mb-3 flex items-center gap-2">
-                        <Eye className="w-4 h-4" /> Evidence Preservation
-                      </h4>
-                      <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
-                        {structured.guidance.evidence.map((s: string, i: number) => <li key={i}>{s}</li>)}
-                      </ul>
-                    </section>
+                    {guidance.evidence && (
+                      <section className="bg-blue-500/5 p-4 rounded-xl border border-blue-500/10">
+                        <h4 className="text-sm font-bold uppercase text-blue-600 mb-3 flex items-center gap-2">
+                          <Eye className="w-4 h-4" /> Evidence Preservation
+                        </h4>
+                        <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                          {guidance.evidence.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                        </ul>
+                      </section>
+                    )}
 
-                    <section className="bg-green-500/5 p-4 rounded-xl border border-green-500/10">
-                      <h4 className="text-sm font-bold uppercase text-green-600 mb-3 flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4" /> Recovery & Next Steps
-                      </h4>
-                      <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
-                        {structured.guidance.nextSteps.map((s: string, i: number) => <li key={i}>{s}</li>)}
-                      </ul>
-                    </section>
+                    {guidance.nextSteps && (
+                      <section className="bg-green-500/5 p-4 rounded-xl border border-green-500/10">
+                        <h4 className="text-sm font-bold uppercase text-green-600 mb-3 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4" /> Recovery & Next Steps
+                        </h4>
+                        <ul className="list-disc pl-5 space-y-2 text-sm text-foreground/80">
+                          {guidance.nextSteps.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                        </ul>
+                      </section>
+                    )}
                   </div>
                 </div>
 
