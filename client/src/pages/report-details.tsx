@@ -7,7 +7,7 @@ import { ArrowLeft, Printer, ShieldCheck, Clock, FileText, AlertCircle, Lock, Ey
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ReportDetails() {
   const [, params] = useRoute("/report/:id");
@@ -34,7 +34,13 @@ export default function ReportDetails() {
   }
 
   const structured = report.structuredReport as any;
-  const [activeTab, setActiveTab] = useState<"report" | "response">(structured.guidance ? "response" : "report");
+  const [activeTab, setActiveTab] = useState<"report" | "response">("report");
+
+  useEffect(() => {
+    if (structured?.guidance) {
+      setActiveTab("response");
+    }
+  }, [structured?.guidance]);
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12">
