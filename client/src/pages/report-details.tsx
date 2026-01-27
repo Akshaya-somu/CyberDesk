@@ -3,7 +3,7 @@ import { useReport } from "@/hooks/use-reports";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Printer, ShieldCheck, Clock, FileText } from "lucide-react";
+import { ArrowLeft, Printer, ShieldCheck, Clock, FileText, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";

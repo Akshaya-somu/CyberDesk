@@ -6,6 +6,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 import { registerChatRoutes } from "./replit_integrations/chat";
+import { getResponseGuidance } from "./incident_response";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -125,18 +126,22 @@ export async function registerRoutes(
 
       const structuredData = JSON.parse(responseContent);
       
-      // Determine response logic based on classification
+      // INCIDENT RESPONSE MODULE:
+      // Map the detected incident type to our rule-based response steps.
+      // This ensures consistent, expert-vetted guidance for each category.
       const category = structuredData.incidentType.toLowerCase();
-      const guidance = INCIDENT_RESPONSE_STEPS[category] || INCIDENT_RESPONSE_STEPS.default;
+      const guidance = getResponseGuidance(category);
 
-      // Dynamic report building logic to avoid placeholders
+      // Dynamic report building logic:
+      // We check for available fields in extractedDetails to avoid displaying empty placeholders.
+      // This makes the report professional and ready for official use.
       let reportLines = [
         "Cybercrime Report Template",
         "To: The Officer-in-Charge, Cyber Cell",
         `Subject: Complaint regarding ${structuredData.incidentType}`
       ];
 
-      // Add details only if they exist in the extractedDetails
+      // Conditional rendering: only add fields if AI found them in the user input.
       const details = structuredData.extractedDetails || {};
       if (details.complainant_name) reportLines.push(`Complainant: ${details.complainant_name}`);
       if (details.date) reportLines.push(`Date and Time: ${details.date}`);
