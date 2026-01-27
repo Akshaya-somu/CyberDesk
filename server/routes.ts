@@ -13,6 +13,43 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
+/**
+ * Incident Response logic for different categories of cybercrime.
+ * This is kept simple and readable for easy explanation.
+ */
+const INCIDENT_RESPONSE_STEPS: Record<string, any> = {
+  phishing: {
+    immediate: ["Disconnect from the internet", "Do not click any more links", "Close all browser tabs"],
+    security: ["Change passwords for affected accounts", "Enable Two-Factor Authentication (2FA)"],
+    evidence: ["Take screenshots of the phishing email/SMS", "Copy the URL of the malicious site"],
+    nextSteps: ["Report to the service provider (e.g., your bank)", "Report on official cyber crime portal"]
+  },
+  financial_fraud: {
+    immediate: ["Call your bank to freeze your account/cards", "Block the UPI ID or mobile number used", "Check recent transactions"],
+    security: ["Reset your mobile banking PIN/Password", "Update your bank's contact details if changed"],
+    evidence: ["Save transaction IDs/UTR numbers", "Keep screenshots of payment confirmations"],
+    nextSteps: ["File a complaint with the bank's fraud department", "Report at cybercrime.gov.in"]
+  },
+  account_hacking: {
+    immediate: ["Log out from all other devices", "Check if recovery email/phone has been changed"],
+    security: ["Perform a password reset", "Revoke access to suspicious third-party apps", "Set up 2FA"],
+    evidence: ["Screenshot login attempt notifications", "Record the hacker's activity if visible"],
+    nextSteps: ["Contact the platform support (e.g., Instagram/Facebook)", "Inform your contacts about the hack"]
+  },
+  identity_theft: {
+    immediate: ["Check for unauthorized account openings", "Alert your primary bank and creditors"],
+    security: ["Place a fraud alert on your credit report", "Change passwords for all major services"],
+    evidence: ["Gather all instances of impersonation or misuse", "Document any unauthorized correspondence"],
+    nextSteps: ["Contact local police to report identity misuse", "Monitor your financial statements closely"]
+  },
+  default: {
+    immediate: ["Stay calm and stop interacting with the threat", "Secure your device"],
+    security: ["Change major account passwords", "Check privacy settings"],
+    evidence: ["Preserve all communication logs and screenshots"],
+    nextSteps: ["Consult a cyber security professional", "Report to the local cyber cell"]
+  }
+};
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -61,28 +98,18 @@ export async function registerRoutes(
         You are a Cyber Crime Reporting Assistant.
         Analyze the following incident description: "${description}"
 
-        Extract and format the information into a structured JSON object with the following fields:
-        - incidentType: The specific type of cyber crime (e.g., Phishing, Financial Fraud, Identity Theft).
-        - description: A formal, polished summary of the incident suitable for an FIR (First Information Report).
-        - modeOfAttack: How the attack happened (e.g., "Malicious Link via SMS").
-        - impact: The loss or damage (financial, data, etc.).
-        - suggestedCategory: The broader category of the crime.
-        - nextSteps: An array of strings listing immediate actionable steps the victim should take.
-        - generatedReportText: A fully formatted report string following the EXACT template below, filled with the extracted information.
+        Extract and format the information into a structured JSON object.
+        CRITICAL INSTRUCTION: Do NOT include placeholders like "[address]", "[date]", "[unknown]" or similar tags. 
+        If a detail is missing, omit it from the object or use the phrase "Information not available at the time of reporting".
 
-        TEMPLATE:
-        Cybercrime Report Template
-        To: The Officer-in-Charge, Cyber Cell / [Local Police Station Name]
-        Subject: Complaint regarding [Type of Crime]
-        Complainant Details: [Full Name], [Age], [Address], and [Contact Number].
-        Incident Summary: [Brief Summary]
-        Date and Time: [Date and Time]
-        Platform: [Platform where it happened]
-        Suspect Details: [Name/Number/ID if known, else "Unknown"]
-        Chronological Description: [Step-by-step account]
-        Loss/Impact: [Specific details]
-        Evidence List: [Mention attached screenshots/IDs/emails]
-        Prayer/Request: I request you to register this complaint and take necessary action under the relevant sections of the IT Act and IPC to recover my funds/data and apprehend the culprit.
+        JSON fields to include:
+        - incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft] or "other".
+        - description: A formal FIR summary. 
+        - modeOfAttack: e.g. "SMS", "Phone Call" (if known).
+        - impact: The loss or damage.
+        - suggestedCategory: Broader category.
+        - extractedDetails: A JSON object containing only keys that were explicitly mentioned (e.g., date, platform, suspect_details, loss_amount). Do NOT include keys for missing information.
+        - nextSteps: AI-generated specific response instructions based on the incident.
 
         Respond ONLY with the valid JSON object.
       `;
@@ -94,11 +121,37 @@ export async function registerRoutes(
       });
 
       const responseContent = completion.choices[0].message.content;
-      if (!responseContent) {
-        throw new Error("Empty response from AI");
-      }
+      if (!responseContent) throw new Error("Empty response from AI");
 
       const structuredData = JSON.parse(responseContent);
+      
+      // Determine response logic based on classification
+      const category = structuredData.incidentType.toLowerCase();
+      const guidance = INCIDENT_RESPONSE_STEPS[category] || INCIDENT_RESPONSE_STEPS.default;
+
+      // Dynamic report building logic to avoid placeholders
+      let reportLines = [
+        "Cybercrime Report Template",
+        "To: The Officer-in-Charge, Cyber Cell",
+        `Subject: Complaint regarding ${structuredData.incidentType}`
+      ];
+
+      // Add details only if they exist in the extractedDetails
+      const details = structuredData.extractedDetails || {};
+      if (details.complainant_name) reportLines.push(`Complainant: ${details.complainant_name}`);
+      if (details.date) reportLines.push(`Date and Time: ${details.date}`);
+      if (details.platform) reportLines.push(`Platform: ${details.platform}`);
+      if (details.suspect_details) reportLines.push(`Suspect Details: ${details.suspect_details}`);
+      
+      reportLines.push("\nChronological Description:");
+      reportLines.push(structuredData.description);
+      
+      if (structuredData.impact) reportLines.push(`\nLoss/Impact: ${structuredData.impact}`);
+      
+      reportLines.push("\nPrayer/Request: I request you to register this complaint and take necessary action under the relevant sections of the IT Act and IPC to recover my funds/data and apprehend the culprit.");
+
+      structuredData.generatedReportText = reportLines.join("\n");
+      structuredData.guidance = guidance;
 
       res.json({
         incidentType: structuredData.incidentType,
@@ -115,89 +168,16 @@ export async function registerRoutes(
   app.post(api.reports.create.path, isAuthenticated, async (req, res) => {
     try {
       const input = api.reports.create.input.parse(req.body);
-      
-      // We need to re-generate or pass the structured data. 
-      // For simplicity in this flow, let's assume the frontend passes the *Raw* info 
-      // and we might re-process OR the frontend calls generate first, then create.
-      // Based on schema, we need 'structuredReport' and 'incidentType' in the insert object.
-      // The current 'create' input only has title and rawDescription.
-      // Let's UPDATE the route handler to generate the analysis IF it's not provided, 
-      // OR update the schema to accept the full report object.
-      
-      // Better approach for consistency: 
-      // User clicks "Save". We expect the frontend might have already called "generate".
-      // But typically "Create" should handle the business logic.
-      // Let's do the generation here to ensure data integrity if it wasn't passed.
-      
-      // ... actually, looking at the user flow, "Step 3: Review & Save".
-      // The user reviews the AI output. They might want to edit it (though we didn't build edit UI yet).
-      // Let's assume the frontend sends the *result* of the generation back to be saved.
-      // I need to update the `api.reports.create.input` schema in `routes.ts` or handle it here.
-      // Since I can't easily change `routes.ts` in this same turn without conflict or re-write,
-      // I will assume for now I'll re-run the generation OR (better) I'll update the `create` logic 
-      // to accept the additional fields by extending the input validation inside the handler 
-      // (even if strictly `routes.ts` said otherwise, Zod is flexible at runtime if I parse differently, 
-      // but best practice is to match. 
-      
-      // Let's stick to the plan: The frontend calls `generate`, gets data, displays it.
-      // Then calls `create`. The `create` endpoint in `shared/routes.ts` was defined as:
-      // input: z.object({ title: z.string(), rawDescription: z.string() })
-      // This is missing `incidentType` and `structuredReport` which are NOT NULL in schema.
-      
-      // I should have defined `create` input to be `insertReportSchema`. 
-      // I will fix this by overwriting `shared/routes.ts` effectively or just making `create` 
-      // handle the generation internally if missing, BUT `structuredReport` is required.
-      
-      // FIX: I will re-generate the analysis here. It costs a bit more latency/tokens but ensures consistency 
-      // without needing to change the shared route definition I just wrote (which might be locked in Batch 2).
-      // actually, I wrote Batch 2 files in this turn. I can't change them "back in time".
-      // Wait, I am writing `server/routes.ts` in the same turn. 
-      // I *already* submitted `shared/routes.ts` in the previous tool call in this batch?
-      // No, I am queuing them all. The Agent executes them.
-      
-      // Wait, I see I already wrote `shared/routes.ts` in the *current* turn's tool calls (above).
-      // I can't edit it again in the same response.
-      // I will just implement the re-generation logic here.
-      
-      const prompt = `
-        You are a Cyber Crime Reporting Assistant.
-        Analyze the following incident description: "${input.rawDescription}"
-
-        Extract and format the information into a structured JSON object with the following fields:
-        - incidentType: The specific type of cyber crime (e.g., Phishing, Financial Fraud, Identity Theft).
-        - description: A formal, polished summary of the incident suitable for an FIR (First Information Report).
-        - modeOfAttack: How the attack happened (e.g., "Malicious Link via SMS").
-        - impact: The loss or damage (financial, data, etc.).
-        - suggestedCategory: The broader category of the crime.
-        - nextSteps: An array of strings listing immediate actionable steps the victim should take.
-        - generatedReportText: A fully formatted report string following the EXACT template below, filled with the extracted information.
-
-        TEMPLATE:
-        Cybercrime Report Template
-        To: The Officer-in-Charge, Cyber Cell / [Local Police Station Name]
-        Subject: Complaint regarding [Type of Crime]
-        Complainant Details: [Full Name], [Age], [Address], and [Contact Number].
-        Incident Summary: [Brief Summary]
-        Date and Time: [Date and Time]
-        Platform: [Platform where it happened]
-        Suspect Details: [Name/Number/ID if known, else "Unknown"]
-        Chronological Description: [Step-by-step account]
-        Loss/Impact: [Specific details]
-        Evidence List: [Mention attached screenshots/IDs/emails]
-        Prayer/Request: I request you to register this complaint and take necessary action under the relevant sections of the IT Act and IPC to recover my funds/data and apprehend the culprit.
-
-        Respond ONLY with the valid JSON object.
-      `;
-      
+      // For simplicity, we re-run generation here as done previously
+      const prompt = `Analyze: "${input.rawDescription}" and return JSON with incidentType, description, etc. NO placeholders.`;
       const completion = await openai.chat.completions.create({
         model: "gpt-5.1",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
-      
       const structuredData = JSON.parse(completion.choices[0].message.content || "{}");
       
-      const reportData: InsertReport = {
+      const reportData = {
         // @ts-ignore
         userId: req.user.claims.sub,
         title: input.title,
@@ -209,13 +189,8 @@ export async function registerRoutes(
 
       const report = await storage.createReport(reportData);
       res.status(201).json(report);
-
     } catch (err) {
-        // ... error handling
-        if (err instanceof z.ZodError) {
-          return res.status(400).json({ message: "Validation error" });
-        }
-        res.status(500).json({ message: "Failed to create report" });
+      res.status(500).json({ message: "Failed to create report" });
     }
   });
 

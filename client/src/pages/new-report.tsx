@@ -168,31 +168,9 @@ export default function NewReport() {
                   </div>
                   
                   <div className="space-y-6">
-                    <div>
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Incident Category</h4>
-                      <p className="text-lg font-medium text-foreground">{analysis.structuredReport.incidentType}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Mode of Attack</h4>
-                      <p className="text-base text-foreground/90">{analysis.structuredReport.modeOfAttack}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Impact Assessment</h4>
-                      <p className="text-base text-foreground/90">{analysis.structuredReport.impact}</p>
-                    </div>
-
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Formal Description</h4>
-                      <p className="text-base leading-relaxed text-foreground/90 font-serif italic">
-                        "{analysis.structuredReport.description}"
-                      </p>
-                    </div>
-
                     {analysis.structuredReport.generatedReportText && (
                       <div className="bg-muted/30 p-4 rounded-lg border border-border/50">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Full Generated Report (Template)</h4>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Dynamic Official Report</h4>
                         <pre className="text-sm font-mono whitespace-pre-wrap text-foreground/80 bg-background/50 p-4 rounded border border-border/30">
                           {analysis.structuredReport.generatedReportText}
                         </pre>
@@ -200,6 +178,40 @@ export default function NewReport() {
                     )}
                   </div>
                 </Card>
+
+                {/* Incident Response Module */}
+                {analysis.structuredReport.guidance && (
+                  <Card className="p-6 border-l-4 border-l-orange-500 shadow-lg bg-card/80">
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/50">
+                      <AlertCircle className="w-6 h-6 text-orange-500" />
+                      <h3 className="text-xl font-bold">Incident Response Guidance</h3>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      <section>
+                        <h4 className="text-sm font-bold uppercase text-orange-600 mb-2">Immediate Actions</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {analysis.structuredReport.guidance.immediate.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                        </ul>
+                      </section>
+                      <section>
+                        <h4 className="text-sm font-bold uppercase text-orange-600 mb-2">Secure Your Accounts</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {analysis.structuredReport.guidance.security.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                        </ul>
+                      </section>
+                      <section>
+                        <h4 className="text-sm font-bold uppercase text-orange-600 mb-2">Preserve Evidence</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {analysis.structuredReport.guidance.evidence.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                        </ul>
+                      </section>
+                      <div className="mt-4 p-3 bg-muted rounded text-xs text-muted-foreground italic">
+                        Disclaimer: This guidance is for awareness and assistance only. Please contact official authorities for legal action.
+                      </div>
+                    </div>
+                  </Card>
+                )}
               </div>
 
               {/* Action Items Column */}

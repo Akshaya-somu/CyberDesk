@@ -67,7 +67,7 @@ export default function ReportDetails() {
             <div className="flex items-center justify-between mb-8 pb-6 border-b border-border/50">
               <div>
                 <h2 className="text-xl font-bold font-display uppercase tracking-wider text-primary">Incident Report (FIR)</h2>
-                <p className="text-sm text-muted-foreground mt-1">Formatted for Official Submission</p>
+                <p className="text-sm text-muted-foreground mt-1">Dynamically Generated Official Document</p>
               </div>
               <Badge variant="outline" className="px-3 py-1 text-sm font-mono">
                 {structured.incidentType}
@@ -75,50 +75,41 @@ export default function ReportDetails() {
             </div>
 
             <div className="space-y-8">
-              <section>
-                <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Incident Description</h3>
-                <div className="text-base leading-relaxed p-4 bg-muted/20 rounded-lg border border-border/50">
-                  {structured.description}
-                </div>
-              </section>
-
               {structured.generatedReportText && (
                 <section>
-                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Official Report Format</h3>
+                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Official Report format</h3>
                   <div className="text-sm font-mono whitespace-pre-wrap p-6 bg-muted/30 rounded-lg border border-border/50 shadow-sm text-foreground/90">
                     {structured.generatedReportText}
                   </div>
                 </section>
               )}
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <section>
-                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-2">Mode of Attack</h3>
-                  <p className="font-medium">{structured.modeOfAttack}</p>
-                </section>
-                <section>
-                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-2">Impact</h3>
-                  <p className="font-medium">{structured.impact}</p>
-                </section>
-              </div>
-
-              <section>
-                <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Suggested Legal Category</h3>
-                <p className="font-medium bg-blue-500/5 text-blue-600 dark:text-blue-400 p-3 rounded border border-blue-500/20 inline-block">
-                  {structured.suggestedCategory}
-                </p>
-              </section>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <h3 className="font-bold mb-4 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-muted-foreground" /> Raw Input
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-              {report.rawDescription}
-            </p>
-          </Card>
+          {structured.guidance && (
+            <Card className="p-6 border-l-4 border-l-orange-500 shadow-sm">
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-orange-500" /> Response Guidance
+              </h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <section>
+                  <h4 className="text-sm font-bold uppercase text-orange-600 mb-2">Immediate Actions</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    {structured.guidance.immediate.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                  </ul>
+                </section>
+                <section>
+                  <h4 className="text-sm font-bold uppercase text-orange-600 mb-2">Security Steps</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    {structured.guidance.security.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                  </ul>
+                </section>
+              </div>
+              <div className="mt-6 p-3 bg-muted/50 rounded text-xs text-muted-foreground italic">
+                Disclaimer: This guidance is for awareness and assistance only.
+              </div>
+            </Card>
+          )}
         </div>
 
         <div className="space-y-6">
