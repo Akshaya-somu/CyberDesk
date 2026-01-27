@@ -87,9 +87,20 @@ export default function Dashboard() {
                     {report.title}
                   </h3>
                   
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-6 flex-1">
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-2 flex-1">
                     {report.rawDescription}
                   </p>
+                  
+                  {(report.structuredReport as any)?.guidance && (
+                    <div className="mb-4 bg-orange-500/10 p-2 rounded-lg border border-orange-500/20">
+                      <p className="text-[10px] font-bold uppercase text-orange-600 mb-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Quick Response Ready
+                      </p>
+                      <p className="text-[11px] text-orange-700 dark:text-orange-400 line-clamp-1">
+                        {((report.structuredReport as any).guidance.immediate[0])}
+                      </p>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-between pt-4 border-t border-border/50">
                     <div className="flex items-center text-xs text-muted-foreground">
