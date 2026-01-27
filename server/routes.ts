@@ -68,6 +68,21 @@ export async function registerRoutes(
         - impact: The loss or damage (financial, data, etc.).
         - suggestedCategory: The broader category of the crime.
         - nextSteps: An array of strings listing immediate actionable steps the victim should take.
+        - generatedReportText: A fully formatted report string following the EXACT template below, filled with the extracted information.
+
+        TEMPLATE:
+        Cybercrime Report Template
+        To: The Officer-in-Charge, Cyber Cell / [Local Police Station Name]
+        Subject: Complaint regarding [Type of Crime]
+        Complainant Details: [Full Name], [Age], [Address], and [Contact Number].
+        Incident Summary: [Brief Summary]
+        Date and Time: [Date and Time]
+        Platform: [Platform where it happened]
+        Suspect Details: [Name/Number/ID if known, else "Unknown"]
+        Chronological Description: [Step-by-step account]
+        Loss/Impact: [Specific details]
+        Evidence List: [Mention attached screenshots/IDs/emails]
+        Prayer/Request: I request you to register this complaint and take necessary action under the relevant sections of the IT Act and IPC to recover my funds/data and apprehend the culprit.
 
         Respond ONLY with the valid JSON object.
       `;
@@ -145,8 +160,33 @@ export async function registerRoutes(
       // I will just implement the re-generation logic here.
       
       const prompt = `
-        Analyze: "${input.rawDescription}"
-        Return JSON: { incidentType, description, modeOfAttack, impact, suggestedCategory, nextSteps }
+        You are a Cyber Crime Reporting Assistant.
+        Analyze the following incident description: "${input.rawDescription}"
+
+        Extract and format the information into a structured JSON object with the following fields:
+        - incidentType: The specific type of cyber crime (e.g., Phishing, Financial Fraud, Identity Theft).
+        - description: A formal, polished summary of the incident suitable for an FIR (First Information Report).
+        - modeOfAttack: How the attack happened (e.g., "Malicious Link via SMS").
+        - impact: The loss or damage (financial, data, etc.).
+        - suggestedCategory: The broader category of the crime.
+        - nextSteps: An array of strings listing immediate actionable steps the victim should take.
+        - generatedReportText: A fully formatted report string following the EXACT template below, filled with the extracted information.
+
+        TEMPLATE:
+        Cybercrime Report Template
+        To: The Officer-in-Charge, Cyber Cell / [Local Police Station Name]
+        Subject: Complaint regarding [Type of Crime]
+        Complainant Details: [Full Name], [Age], [Address], and [Contact Number].
+        Incident Summary: [Brief Summary]
+        Date and Time: [Date and Time]
+        Platform: [Platform where it happened]
+        Suspect Details: [Name/Number/ID if known, else "Unknown"]
+        Chronological Description: [Step-by-step account]
+        Loss/Impact: [Specific details]
+        Evidence List: [Mention attached screenshots/IDs/emails]
+        Prayer/Request: I request you to register this complaint and take necessary action under the relevant sections of the IT Act and IPC to recover my funds/data and apprehend the culprit.
+
+        Respond ONLY with the valid JSON object.
       `;
       
       const completion = await openai.chat.completions.create({

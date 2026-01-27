@@ -189,6 +189,15 @@ export default function NewReport() {
                         "{analysis.structuredReport.description}"
                       </p>
                     </div>
+
+                    {analysis.structuredReport.generatedReportText && (
+                      <div className="bg-muted/30 p-4 rounded-lg border border-border/50">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Full Generated Report (Template)</h4>
+                        <pre className="text-sm font-mono whitespace-pre-wrap text-foreground/80 bg-background/50 p-4 rounded border border-border/30">
+                          {analysis.structuredReport.generatedReportText}
+                        </pre>
+                      </div>
+                    )}
                   </div>
                 </Card>
               </div>

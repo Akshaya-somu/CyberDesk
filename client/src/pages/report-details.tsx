@@ -82,6 +82,15 @@ export default function ReportDetails() {
                 </div>
               </section>
 
+              {structured.generatedReportText && (
+                <section>
+                  <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Official Report Format</h3>
+                  <div className="text-sm font-mono whitespace-pre-wrap p-6 bg-muted/30 rounded-lg border border-border/50 shadow-sm text-foreground/90">
+                    {structured.generatedReportText}
+                  </div>
+                </section>
+              )}
+
               <div className="grid md:grid-cols-2 gap-6">
                 <section>
                   <h3 className="text-sm font-bold uppercase text-muted-foreground mb-2">Mode of Attack</h3>

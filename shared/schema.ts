@@ -17,7 +17,7 @@ export const reports = pgTable("reports", {
   title: text("title").notNull(),
   rawDescription: text("raw_description").notNull(),
   incidentType: text("incident_type").notNull(), // e.g. "phishing", "financial_fraud", "identity_theft"
-  structuredReport: jsonb("structured_report").notNull(), // JSON object with FIR fields
+  structuredReport: jsonb("structured_report").notNull(), // JSON object with FIR fields and full text
   status: text("status").notNull().default("draft"), // draft, finalized
   createdAt: timestamp("created_at").defaultNow(),
 });

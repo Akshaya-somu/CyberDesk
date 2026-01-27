@@ -60,6 +60,7 @@ export const api = {
             impact: z.string(),
             suggestedCategory: z.string(),
             nextSteps: z.array(z.string()),
+            generatedReportText: z.string().optional(),
           }),
         }),
         500: errorSchemas.internal,

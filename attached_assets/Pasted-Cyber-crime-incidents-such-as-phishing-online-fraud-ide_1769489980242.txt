@@ -1,0 +1,106 @@
+Cyber crime incidents such as phishing, online fraud, identity theft, and social media account compromise are increasing rapidly. Most victims are non-technical users who face difficulties in:
+
+* clearly explaining what happened,
+* converting their experience into a formal cyber crime report,
+* understanding the next steps after an incident,
+* knowing how to secure their accounts and digital evidence.
+
+Because of this, many incidents are either poorly reported or not reported at all. CyberDesk addresses this gap by providing an AI-driven assistance system.
+
+---
+
+## 2️⃣ Raw User Input → Structured FIR-Style Report
+
+### 🔹 Step 1: Incident Description (Raw Text Input)
+
+The user enters a **free-text description** of the incident, for example:
+
+> “I received a fake bank message and clicked the link. I entered my card details and money was deducted from my account.”
+
+This input may be unstructured, emotional, or incomplete.
+
+---
+
+### 🔹 Step 2: NLP Processing & Information Extraction
+
+The system uses **Natural Language Processing (NLP)** to:
+
+* identify keywords (bank, link, money deducted),
+* detect the type of cyber incident (phishing / financial fraud),
+* extract useful details such as:
+
+  * type of incident
+  * affected service (bank, social media, email)
+  * nature of loss (financial / account access)
+
+---
+
+### 🔹 Step 3: FIR-Style Report Generation
+
+Using **Generative AI**, the extracted information is converted into a **formal, structured cyber incident report** similar to an FIR format.
+
+The generated report includes:
+
+* Type of cyber crime
+* Incident description (formal language)
+* Mode of attack
+* Impact and loss details
+* Date and time (if provided)
+* Suggested cyber crime category
+
+This report can be **copied, downloaded, or submitted** to cyber crime portals.
+
+---
+
+## 3️⃣ Incident Response & Account Security Guidance
+
+### 🔹 Step 4: Incident Classification
+
+Based on the detected incident type (e.g., phishing, account hacking, online fraud), the system triggers a **response guidance module**.
+
+---
+
+### 🔹 Step 5: Actionable Next Steps
+
+CyberDesk provides **step-by-step instructions** such as:
+
+* Immediately changing passwords
+* Blocking bank cards
+* Contacting the bank or service provider
+* Preserving evidence (messages, links, screenshots)
+* Reporting the incident on official cyber crime portals
+
+These steps help victims **reduce damage and prevent further misuse**.
+
+---
+
+## 4️⃣ Cyber Security Chatbot Module
+
+### 🔹 Step 6: Awareness & Education
+
+CyberDesk includes an **interactive chatbot** that:
+
+* answers questions like:
+
+  * “What is phishing?”
+  * “How can I protect my account?”
+  * “What should I do if my Instagram is hacked?”
+* explains cyber threats in simple language
+* suggests best practices for online safety
+
+The chatbot improves **user awareness and prevention**.
+
+---
+
+## 5️⃣ System Architecture Summary
+
+```
+User Input (Raw Text)
+        ↓
+NLP Processing & Incident Detection
+        ↓
+FIR-Style Report Generation
+        ↓
+Incident Response & Security Guidance
+        ↓
+Cyber Security Chatbot Interaction
