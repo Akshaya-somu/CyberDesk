@@ -1,0 +1,87 @@
+Step 1: Read User Input
+
+The system receives the user’s description of the cyber incident in plain text.
+
+Example:
+
+“I clicked a suspicious link and my account stopped working.”
+
+🔹 Step 2: Identify What Is Known
+
+Using NLP, the system checks:
+
+what type of incident is clearly mentioned,
+
+which platforms are involved,
+
+whether loss or compromise is explicitly stated.
+
+If details are unclear or incomplete, the system marks them as unknown instead of guessing.
+
+🔹 Step 3: Decide Whether to Respond
+
+If the incident type is clearly identified, the system proceeds.
+
+If the incident type is uncertain, the system:
+
+informs the user that more details are needed,
+
+does not generate incident response steps.
+
+This prevents misleading guidance.
+
+🔹 Step 4: Generate Incident-Specific Guidance
+
+When enough details are available, the system provides only relevant steps, such as:
+
+securing affected accounts,
+
+blocking access,
+
+preserving evidence,
+
+contacting the appropriate authority or service.
+
+The guidance is limited to what applies to the detected incident.
+
+🔹 Step 5: Explain the Basis of Guidance
+
+The system clearly states:
+
+which details were used,
+
+which details were missing,
+
+that the guidance is based solely on user-provided information.
+
+This keeps the process transparent.
+
+4️⃣ What the System Will NOT Do
+
+The Incident Response system will not:
+
+assume financial loss if none is mentioned,
+
+suggest legal actions without evidence,
+
+provide generic steps for unrelated incidents,
+
+display placeholder or fabricated details.
+
+5️⃣ Outcome of the Incident Response System
+
+By following this approach, the system:
+
+delivers accurate and responsible guidance,
+
+avoids misinformation,
+
+supports cyber security best practices,
+
+builds user trust,
+
+and aligns with real-world incident response principles.
+
+6️⃣ One-Line Exam Answer (Very Useful)
+
+“The Incident Response system provides context-aware guidance based only on confirmed user input, ensuring safe and accurate cyber security assistance without assumptions.”

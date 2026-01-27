@@ -123,30 +123,9 @@ export const INCIDENT_RESPONSE_RULES: Record<string, {
 
 /**
  * Gets the response guidance based on the incident category.
- * Defaults to a general response if category is not found.
+ * Returns null if the category is not clearly identified to avoid misleading guidance.
  */
 export function getResponseGuidance(category: string) {
   const key = category.toLowerCase().replace(/\s+/g, '_');
-  return INCIDENT_RESPONSE_RULES[key] || {
-    immediate: [
-      "Stop interacting with the suspected source of the threat.",
-      "Secure your primary accounts (Email, Banking) with new, strong passwords.",
-      "Consult with a cybersecurity professional if the threat persists."
-    ],
-    security: [
-      "Update your operating system and all installed applications.",
-      "Enable Two-Factor Authentication on all important services.",
-      "Verify the security of your home Wi-Fi and connected devices."
-    ],
-    evidence: [
-      "Preserve all logs, messages, and screenshots related to the incident.",
-      "Keep a timeline of events as they occurred.",
-      "Do not attempt to 'hack back' or engage with the perpetrator."
-    ],
-    nextSteps: [
-      "Consult the official National Cyber Crime Reporting Portal for guidance.",
-      "Contact your local Cyber Crime Cell for further assistance.",
-      "Maintain high digital hygiene and stay updated on common cyber threats."
-    ]
-  };
+  return INCIDENT_RESPONSE_RULES[key] || null;
 }

@@ -130,7 +130,13 @@ export async function registerRoutes(
       // Map the detected incident type to our rule-based response steps.
       // This ensures consistent, expert-vetted guidance for each category.
       const category = structuredData.incidentType.toLowerCase();
-      const guidance = getResponseGuidance(category);
+      
+      // Step 3: Decide Whether to Respond
+      // If the incident type is uncertain (classified as "other" or "general"), 
+      // we inform the user that more details are needed for specific guidance.
+      const isUncertain = category.includes("other") || category.includes("general") || category.includes("unknown");
+      
+      const guidance = isUncertain ? null : getResponseGuidance(category);
 
       // Dynamic report building logic:
       // We check for available fields in extractedDetails to avoid displaying empty placeholders.

@@ -86,6 +86,18 @@ export default function ReportDetails() {
             </div>
           </Card>
 
+          {!structured.guidance && (
+            <Card className="p-6 border-l-4 border-l-blue-500 shadow-sm bg-blue-50/50">
+              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-blue-500" /> Guidance Note
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                The incident type could not be clearly identified from your description. 
+                Please provide more specific details about the incident in a new report to receive tailored response guidance.
+              </p>
+            </Card>
+          )}
+
           {structured.guidance && (
             <Card className="p-6 border-l-4 border-l-orange-500 shadow-sm">
               <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
