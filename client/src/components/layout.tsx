@@ -56,7 +56,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <div className="p-4 border-t border-border/50">
         <div className="flex items-center gap-3 px-4 py-3 mb-2">
           <Avatar className="h-9 w-9 border border-border">
-            <AvatarImage src={user?.profileImageUrl} />
+            <AvatarImage src={user?.profileImageUrl || undefined} />
             <AvatarFallback className="bg-primary/10 text-primary">
               <User className="w-4 h-4" />
             </AvatarFallback>
