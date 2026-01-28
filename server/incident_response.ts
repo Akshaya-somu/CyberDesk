@@ -126,6 +126,7 @@ export const INCIDENT_RESPONSE_RULES: Record<string, {
  * Returns null if the category is not clearly identified to avoid misleading guidance.
  */
 export function getResponseGuidance(category: string) {
-  const key = category.toLowerCase().replace(/\s+/g, '_');
+  if (!category) return null;
+  const key = category.toLowerCase().trim().replace(/\s+/g, '_');
   return INCIDENT_RESPONSE_RULES[key] || null;
 }

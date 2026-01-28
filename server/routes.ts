@@ -135,9 +135,9 @@ export async function registerRoutes(
       const fullText = (category + " " + (structuredData.description || "") + " " + description).toLowerCase();
       
       if (fullText.includes("phish") || fullText.includes("link") || fullText.includes("sms")) category = "phishing";
-      else if (fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp") || fullText.includes("debit") || fullText.includes("rs.") || fullText.includes("rupees")) category = "financial_fraud";
-      else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook") || fullText.includes("account")) category = "account_hacking";
-      else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat")) category = "identity_theft";
+      else if (fullText.includes("financial") || fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp") || fullText.includes("debit") || fullText.includes("rs.") || fullText.includes("rupees") || fullText.includes("payment")) category = "financial_fraud";
+      else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook") || fullText.includes("account") || fullText.includes("stolen")) category = "account_hacking";
+      else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat") || fullText.includes("aadhar") || fullText.includes("pan")) category = "identity_theft";
       else if (fullText.includes("email")) category = "email_compromise";
       
       const isUncertain = !category || category === "other" || category === "unknown";

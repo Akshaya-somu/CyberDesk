@@ -1,4 +1,4 @@
-import { Shield, AlertTriangle, Lock, Eye, ArrowRight, CheckCircle2, Sparkles, Loader2, ArrowLeft, Bot } from "lucide-react";
+import { Shield, AlertTriangle, Lock, Eye, ArrowRight, CheckCircle2, Sparkles, Loader2, ArrowLeft, Bot, AlertCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -175,7 +175,7 @@ export default function IncidentResponse() {
               </div>
             </div>
 
-            {analysis.guidance && (
+            {analysis.guidance ? (
               <div className="grid md:grid-cols-2 gap-8">
                 <section className="bg-red-500/5 p-6 rounded-2xl border border-red-500/10">
                   <h4 className="font-bold text-red-600 mb-4 flex items-center gap-2">
@@ -232,6 +232,11 @@ export default function IncidentResponse() {
                     ))}
                   </ul>
                 </section>
+              </div>
+            ) : (
+              <div className="bg-muted/30 p-8 rounded-2xl border border-dashed text-center">
+                <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">Tailored guidance for this specific incident is being prepared. Please check the official portal or chat with our AI for immediate support.</p>
               </div>
             )}
 
