@@ -172,21 +172,61 @@ export async function registerRoutes(
   app.post(api.reports.create.path, isAuthenticated, async (req, res) => {
     try {
       const input = api.reports.create.input.parse(req.body);
-      // For simplicity, we re-run generation here as done previously
-      const prompt = `Analyze: "${input.rawDescription}" and return JSON with incidentType, description, etc. NO placeholders.`;
+      
+      const prompt = `
+        You are a Cyber Crime Reporting Assistant.
+        Analyze the following incident description: "${input.rawDescription}"
+
+        Extract and format the information into a structured JSON object according to the FIR (First Information Report) style.
+        CRITICAL INSTRUCTION: Do NOT include placeholders like "[address]", "[date]", "[unknown]" or similar tags. 
+        If a detail is missing, take some likely context or use the phrase "Information not available at the time of reporting".
+
+        JSON fields to include:
+        - incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft, email_compromise].
+        - description: A formal FIR summary in the following style:
+          "To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding [Incident Type]. I, [Complainant Name if available], wish to report a fraudulent incident..."
+          Follow the format: 
+          1. Incident Details (Date & Time, Mode of Communication, Suspect Details)
+          2. Chronological Description of the Incident
+          3. Financial Loss Details (if any)
+          4. Evidence List
+          5. Request for Action
+        - modeOfAttack: e.g. "SMS", "Phone Call" (if known).
+        - impact: The loss or damage.
+        - suggestedCategory: Broader category.
+        - extractedDetails: A JSON object containing only keys that were explicitly mentioned (e.g., date, platform, suspect_details, loss_amount).
+        - nextSteps: AI-generated specific response instructions based on the incident.
+
+        Respond ONLY with the valid JSON object.
+      `;
+
       const completion = await openai.chat.completions.create({
         model: "gpt-5.1",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
+      
       const structuredData = JSON.parse(completion.choices[0].message.content || "{}");
+      
+      // Standardize the category for better matching
+      let category = (structuredData.incidentType || "").toLowerCase();
+      const fullText = (category + " " + (structuredData.description || "") + " " + input.rawDescription).toLowerCase();
+      
+      if (fullText.includes("phish") || fullText.includes("link") || fullText.includes("sms")) category = "phishing";
+      else if (fullText.includes("financial") || fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp") || fullText.includes("debit") || fullText.includes("rs.") || fullText.includes("rupees") || fullText.includes("payment")) category = "financial_fraud";
+      else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook") || fullText.includes("account") || fullText.includes("stolen")) category = "account_hacking";
+      else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat") || fullText.includes("aadhar") || fullText.includes("pan")) category = "identity_theft";
+      else if (fullText.includes("email")) category = "email_compromise";
+      
+      const guidance = getResponseGuidance(category);
+      structuredData.guidance = guidance;
       
       const reportData = {
         // @ts-ignore
         userId: req.user.claims.sub,
         title: input.title,
         rawDescription: input.rawDescription,
-        incidentType: structuredData.incidentType || "Unknown",
+        incidentType: category.toUpperCase(),
         structuredReport: structuredData,
         status: "draft"
       };
@@ -194,6 +234,7 @@ export async function registerRoutes(
       const report = await storage.createReport(reportData);
       res.status(201).json(report);
     } catch (err) {
+      console.error("Create Report Error:", err);
       res.status(500).json({ message: "Failed to create report" });
     }
   });

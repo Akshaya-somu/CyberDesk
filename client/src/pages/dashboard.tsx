@@ -88,7 +88,7 @@ export default function Dashboard() {
                   </h3>
                   
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-2 flex-1">
-                    {report.rawDescription}
+                    {(report.structuredReport as any)?.description || report.rawDescription}
                   </p>
                   
                   {(report.structuredReport as any)?.guidance && (
