@@ -1,0 +1,34 @@
+Example Complaint Letter (FIR Style)
+To,
+The Officer-in-Charge / Station House Officer,
+Cyber Crime Police Station,
+[City Name], [State] 
+Date: DD/MM/YYYY
+Subject: Complaint regarding online financial fraud (Loss of ₹_______/-) 
+Respected Sir/Madam,
+I, [Your Full Name], S/o / D/o / W/o [Father's/Spouse's Name], aged ___ years, resident of [Your Full Address], having contact number [Your Mobile Number] and email [Your Email], wish to report a fraudulent incident resulting in financial loss. 
+1. Incident Details:
+Date & Time of Incident: [e.g., 04-03-2024 at 10:48 AM]
+Mode of Communication: [e.g., Phone Call, WhatsApp, Email, SMS]
+Suspect Details: [e.g., Phone number 9988233057, Name used: Suresh Desai, Skype ID: live:.cid.62206428ed2de72c] 
+2. Description of the Incident:
+On [Date] at [Time], I received a call from [Number] claiming to be [Name/Organization, e.g., FEDEX Courier representative]. The caller alleged that a package booked in my name contained illegal items (drugs/passports) and threatened that Mumbai Police would arrest me. 
+The person forced me to join a Skype video call [ID: _____], where a person posing as "Mumbai Cyber Crime" official intimidated me into transferring money to a "safe account" to verify my credentials. 
+3. Financial Loss Details:
+Believing the threat, I transferred money as follows:
+Transaction Date: [DD/MM/YYYY]
+Amount: [Amount, e.g., ₹50,000]
+Source Account: [Your Bank Name/UPI ID]
+Beneficiary Account/UPI: [Fraudster's Bank/UPI ID]
+Transaction ID (UTR): [Crucial to include] 
+4. Evidence Attached:
+Screenshots of the Skype video call/chat logs.
+Screenshots of SMS/bank transaction alerts.
+Detailed bank statement showing the transaction.
+Copy of my Aadhar Card (ID Proof). 
+5. Request for Action:
+I request you to kindly register an FIR (under appropriate sections of IPC and IT Act, such as 420, 66, 66C, 66D) against the suspect(s) and take immediate action to freeze the beneficiary account to recover the funds. 
+Yours Faithfully,
+(Signature)
+[Your Full Name]
+[Your Phone Number]

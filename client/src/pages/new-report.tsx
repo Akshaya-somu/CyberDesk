@@ -168,11 +168,11 @@ export default function NewReport() {
                   </div>
                   
                   <div className="space-y-6">
-                    {analysis.structuredReport.generatedReportText && (
+                    {analysis.structuredReport.description && (
                       <div className="bg-muted/30 p-4 rounded-lg border border-border/50">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Dynamic Official Report</h4>
                         <pre className="text-sm font-mono whitespace-pre-wrap text-foreground/80 bg-background/50 p-4 rounded border border-border/30">
-                          {analysis.structuredReport.generatedReportText}
+                          {analysis.structuredReport.description}
                         </pre>
                       </div>
                     )}

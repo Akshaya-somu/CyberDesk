@@ -103,14 +103,14 @@ export default function ReportDetails() {
               </div>
 
               <div className="space-y-8">
-                {structured.generatedReportText && (
-                  <section>
-                    <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Official Report format</h3>
-                    <div className="text-sm font-mono whitespace-pre-wrap p-6 bg-muted/30 rounded-lg border border-border/50 shadow-sm text-foreground/90">
-                      {structured.generatedReportText}
-                    </div>
-                  </section>
-                )}
+                    {structured.description && (
+                      <section>
+                        <h3 className="text-sm font-bold uppercase text-muted-foreground mb-3">Official Report format</h3>
+                        <div className="text-sm font-mono whitespace-pre-wrap p-6 bg-muted/30 rounded-lg border border-border/50 shadow-sm text-foreground/90">
+                          {structured.description}
+                        </div>
+                      </section>
+                    )}
               </div>
             </Card>
           </div>

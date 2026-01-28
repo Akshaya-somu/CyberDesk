@@ -99,17 +99,24 @@ export async function registerRoutes(
         You are a Cyber Crime Reporting Assistant.
         Analyze the following incident description: "${description}"
 
-        Extract and format the information into a structured JSON object.
+        Extract and format the information into a structured JSON object according to the FIR (First Information Report) style.
         CRITICAL INSTRUCTION: Do NOT include placeholders like "[address]", "[date]", "[unknown]" or similar tags. 
-        If a detail is missing, omit it from the object or use the phrase "Information not available at the time of reporting".
+        If a detail is missing, take some likely context or use the phrase "Information not available at the time of reporting".
 
         JSON fields to include:
         - incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft, email_compromise].
-        - description: A formal FIR summary. 
+        - description: A formal FIR summary in the following style:
+          "To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding [Incident Type]. I, [Complainant Name if available], wish to report a fraudulent incident..."
+          Follow the format: 
+          1. Incident Details (Date & Time, Mode of Communication, Suspect Details)
+          2. Chronological Description of the Incident
+          3. Financial Loss Details (if any)
+          4. Evidence List
+          5. Request for Action
         - modeOfAttack: e.g. "SMS", "Phone Call" (if known).
         - impact: The loss or damage.
         - suggestedCategory: Broader category.
-        - extractedDetails: A JSON object containing only keys that were explicitly mentioned (e.g., date, platform, suspect_details, loss_amount). Do NOT include keys for missing information.
+        - extractedDetails: A JSON object containing only keys that were explicitly mentioned (e.g., date, platform, suspect_details, loss_amount).
         - nextSteps: AI-generated specific response instructions based on the incident.
 
         Respond ONLY with the valid JSON object.
@@ -139,9 +146,10 @@ export async function registerRoutes(
       else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook") || fullText.includes("account") || fullText.includes("stolen")) category = "account_hacking";
       else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat") || fullText.includes("aadhar") || fullText.includes("pan")) category = "identity_theft";
       else if (fullText.includes("email")) category = "email_compromise";
+      else if (fullText.includes("fedex") || fullText.includes("courier") || fullText.includes("drugs") || fullText.includes("illegal") || fullText.includes("police call") || fullText.includes("arrest")) category = "financial_fraud";
       
       const isUncertain = !category || category === "other" || category === "unknown";
-      const guidance = isUncertain ? null : getResponseGuidance(category);
+      const guidance = isUncertain ? getResponseGuidance("financial_fraud") : getResponseGuidance(category);
 
       // Add a fallback for the AI response if guidance is still null but we matched a category
       const finalGuidance = guidance;
