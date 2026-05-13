@@ -41,10 +41,17 @@ export type GenerateReportResponse = {
   structuredReport: {
     incidentType: string;
     description: string;
-    modeOfAttack: string;
-    impact: string;
-    suggestedCategory: string;
-    nextSteps: string[];
+    modeOfAttack?: string;
+    impact?: string;
+    suggestedCategory?: string;
+    nextSteps?: string[];
+    extractedDetails?: Record<string, any>;
+    guidance?: {
+      immediate: string[];
+      security: string[];
+      evidence: string[];
+      nextSteps: string[];
+    };
   };
 };
 
