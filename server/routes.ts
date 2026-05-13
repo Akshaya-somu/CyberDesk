@@ -217,8 +217,10 @@ export async function registerRoutes(
       else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook") || fullText.includes("account") || fullText.includes("stolen")) category = "account_hacking";
       else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat") || fullText.includes("aadhar") || fullText.includes("pan")) category = "identity_theft";
       else if (fullText.includes("email")) category = "email_compromise";
-      
-      const guidance = getResponseGuidance(category);
+      else if (fullText.includes("fedex") || fullText.includes("courier") || fullText.includes("drugs") || fullText.includes("illegal") || fullText.includes("arrest")) category = "financial_fraud";
+
+      const isUncertain = !category || category === "other" || category === "unknown";
+      const guidance = isUncertain ? getResponseGuidance("financial_fraud") : getResponseGuidance(category);
       structuredData.guidance = guidance;
       
       const reportData = {

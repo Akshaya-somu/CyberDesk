@@ -7,20 +7,13 @@ import { ArrowLeft, Printer, ShieldCheck, Clock, FileText, AlertCircle, Lock, Ey
 import { Link } from "wouter";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function ReportDetails() {
   const [, params] = useRoute("/report/:id");
   const id = params ? parseInt(params.id) : 0;
   const { data: report, isLoading } = useReport(id);
   const [activeTab, setActiveTab] = useState<"report" | "response">("report");
-
-  useEffect(() => {
-    const structured = report?.structuredReport as any;
-    if (structured?.guidance) {
-      setActiveTab("response");
-    }
-  }, [report?.structuredReport]);
 
   if (isLoading) {
     return (
