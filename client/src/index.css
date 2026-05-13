@@ -109,3 +109,85 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
 }
+
+/* ── Print Styles ── */
+@media print {
+  /* Hide everything except the print target */
+  body * {
+    visibility: hidden;
+  }
+
+  #fir-print-area,
+  #fir-print-area * {
+    visibility: visible;
+  }
+
+  #fir-print-area {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    color: black;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12pt;
+    line-height: 1.7;
+    padding: 2.5cm 3cm;
+    box-sizing: border-box;
+  }
+
+  #fir-print-area .print-header {
+    text-align: center;
+    border-bottom: 2px solid black;
+    padding-bottom: 12pt;
+    margin-bottom: 18pt;
+  }
+
+  #fir-print-area .print-header h1 {
+    font-size: 16pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    margin: 0 0 4pt 0;
+  }
+
+  #fir-print-area .print-header p {
+    font-size: 10pt;
+    color: #444;
+    margin: 0;
+  }
+
+  #fir-print-area .print-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10pt;
+    margin-bottom: 18pt;
+    padding-bottom: 8pt;
+    border-bottom: 1px solid #aaa;
+  }
+
+  #fir-print-area .print-body {
+    white-space: pre-wrap;
+    font-size: 12pt;
+    line-height: 1.8;
+    color: black;
+    text-align: justify;
+  }
+
+  #fir-print-area .print-footer {
+    position: fixed;
+    bottom: 2cm;
+    left: 3cm;
+    right: 3cm;
+    border-top: 1px solid #aaa;
+    padding-top: 8pt;
+    font-size: 9pt;
+    color: #555;
+    text-align: center;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

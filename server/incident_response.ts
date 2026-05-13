@@ -123,10 +123,10 @@ export const INCIDENT_RESPONSE_RULES: Record<string, {
 
 /**
  * Gets the response guidance based on the incident category.
- * Returns null if the category is not clearly identified to avoid misleading guidance.
+ * Falls back to financial_fraud guidance if the category is not recognized.
  */
 export function getResponseGuidance(category: string) {
-  if (!category) return null;
+  if (!category) return INCIDENT_RESPONSE_RULES.financial_fraud;
   const key = category.toLowerCase().trim().replace(/\s+/g, '_');
-  return INCIDENT_RESPONSE_RULES[key] || null;
+  return INCIDENT_RESPONSE_RULES[key] || INCIDENT_RESPONSE_RULES.financial_fraud;
 }
