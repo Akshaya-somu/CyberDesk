@@ -1,18 +1,23 @@
-
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
-import { registerChatRoutes } from "./replit_integrations/chat";
+import {
+  setupAuth,
+  registerAuthRoutes,
+  isAuthenticated,
+} from "./integrations/auth";
+import { registerChatRoutes } from "./integrations/chat";
 import { getResponseGuidance } from "./incident_response";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-});
+const openai = process.env.OPENAI_API_KEY
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_BASE_URL,
+    })
+  : null;
 
 /**
  * Incident Response logic for different categories of cybercrime.
@@ -20,40 +25,97 @@ const openai = new OpenAI({
  */
 const INCIDENT_RESPONSE_STEPS: Record<string, any> = {
   phishing: {
-    immediate: ["Disconnect from the internet", "Do not click any more links", "Close all browser tabs"],
-    security: ["Change passwords for affected accounts", "Enable Two-Factor Authentication (2FA)"],
-    evidence: ["Take screenshots of the phishing email/SMS", "Copy the URL of the malicious site"],
-    nextSteps: ["Report to the service provider (e.g., your bank)", "Report on official cyber crime portal"]
+    immediate: [
+      "Disconnect from the internet",
+      "Do not click any more links",
+      "Close all browser tabs",
+    ],
+    security: [
+      "Change passwords for affected accounts",
+      "Enable Two-Factor Authentication (2FA)",
+    ],
+    evidence: [
+      "Take screenshots of the phishing email/SMS",
+      "Copy the URL of the malicious site",
+    ],
+    nextSteps: [
+      "Report to the service provider (e.g., your bank)",
+      "Report on official cyber crime portal",
+    ],
   },
   financial_fraud: {
-    immediate: ["Call your bank to freeze your account/cards", "Block the UPI ID or mobile number used", "Check recent transactions"],
-    security: ["Reset your mobile banking PIN/Password", "Update your bank's contact details if changed"],
-    evidence: ["Save transaction IDs/UTR numbers", "Keep screenshots of payment confirmations"],
-    nextSteps: ["File a complaint with the bank's fraud department", "Report at cybercrime.gov.in"]
+    immediate: [
+      "Call your bank to freeze your account/cards",
+      "Block the UPI ID or mobile number used",
+      "Check recent transactions",
+    ],
+    security: [
+      "Reset your mobile banking PIN/Password",
+      "Update your bank's contact details if changed",
+    ],
+    evidence: [
+      "Save transaction IDs/UTR numbers",
+      "Keep screenshots of payment confirmations",
+    ],
+    nextSteps: [
+      "File a complaint with the bank's fraud department",
+      "Report at cybercrime.gov.in",
+    ],
   },
   account_hacking: {
-    immediate: ["Log out from all other devices", "Check if recovery email/phone has been changed"],
-    security: ["Perform a password reset", "Revoke access to suspicious third-party apps", "Set up 2FA"],
-    evidence: ["Screenshot login attempt notifications", "Record the hacker's activity if visible"],
-    nextSteps: ["Contact the platform support (e.g., Instagram/Facebook)", "Inform your contacts about the hack"]
+    immediate: [
+      "Log out from all other devices",
+      "Check if recovery email/phone has been changed",
+    ],
+    security: [
+      "Perform a password reset",
+      "Revoke access to suspicious third-party apps",
+      "Set up 2FA",
+    ],
+    evidence: [
+      "Screenshot login attempt notifications",
+      "Record the hacker's activity if visible",
+    ],
+    nextSteps: [
+      "Contact the platform support (e.g., Instagram/Facebook)",
+      "Inform your contacts about the hack",
+    ],
   },
   identity_theft: {
-    immediate: ["Check for unauthorized account openings", "Alert your primary bank and creditors"],
-    security: ["Place a fraud alert on your credit report", "Change passwords for all major services"],
-    evidence: ["Gather all instances of impersonation or misuse", "Document any unauthorized correspondence"],
-    nextSteps: ["Contact local police to report identity misuse", "Monitor your financial statements closely"]
+    immediate: [
+      "Check for unauthorized account openings",
+      "Alert your primary bank and creditors",
+    ],
+    security: [
+      "Place a fraud alert on your credit report",
+      "Change passwords for all major services",
+    ],
+    evidence: [
+      "Gather all instances of impersonation or misuse",
+      "Document any unauthorized correspondence",
+    ],
+    nextSteps: [
+      "Contact local police to report identity misuse",
+      "Monitor your financial statements closely",
+    ],
   },
   default: {
-    immediate: ["Stay calm and stop interacting with the threat", "Secure your device"],
+    immediate: [
+      "Stay calm and stop interacting with the threat",
+      "Secure your device",
+    ],
     security: ["Change major account passwords", "Check privacy settings"],
     evidence: ["Preserve all communication logs and screenshots"],
-    nextSteps: ["Consult a cyber security professional", "Report to the local cyber cell"]
-  }
+    nextSteps: [
+      "Consult a cyber security professional",
+      "Report to the local cyber cell",
+    ],
+  },
 };
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express
+  app: Express,
 ): Promise<Server> {
   // 1. Setup Auth
   await setupAuth(app);
@@ -66,8 +128,7 @@ export async function registerRoutes(
 
   // List Reports
   app.get(api.reports.list.path, isAuthenticated, async (req, res) => {
-    // @ts-ignore - req.user is added by passport
-    const userId = req.user.claims.sub;
+    const userId = (req.session as any)?.user?.id;
     const reports = await storage.getReports(userId);
     res.json(reports);
   });
@@ -76,14 +137,14 @@ export async function registerRoutes(
   app.get(api.reports.get.path, isAuthenticated, async (req, res) => {
     const id = Number(req.params.id);
     const report = await storage.getReport(id);
-    
+
     if (!report) {
       return res.status(404).json({ message: "Report not found" });
     }
 
     // Security check: ensure report belongs to user
-    // @ts-ignore
-    if (report.userId !== req.user.claims.sub) {
+    const userId = (req.session as any)?.user?.id;
+    if (report.userId !== userId) {
       return res.status(403).json({ message: "Unauthorized access to report" });
     }
 
@@ -122,46 +183,136 @@ export async function registerRoutes(
         Respond ONLY with the valid JSON object.
       `;
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-5.1",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-      });
+      let structuredData: any;
+      if (openai) {
+        const completion = await openai.chat.completions.create({
+          model: "gpt-5.1",
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" },
+        });
 
-      const responseContent = completion.choices[0].message.content;
-      if (!responseContent) throw new Error("Empty response from AI");
+        const responseContent = completion.choices[0].message.content;
+        if (!responseContent) throw new Error("Empty response from AI");
 
-      const structuredData = JSON.parse(responseContent);
-      
+        structuredData = JSON.parse(responseContent);
+      } else {
+        // Fallback simple analysis when OpenAI not configured
+        const text = description.toLowerCase();
+        let fallbackCategory = "other";
+        if (
+          text.includes("phish") ||
+          text.includes("link") ||
+          text.includes("sms")
+        )
+          fallbackCategory = "phishing";
+        else if (
+          text.includes("financial") ||
+          text.includes("fraud") ||
+          text.includes("bank") ||
+          text.includes("transaction") ||
+          text.includes("otp") ||
+          text.includes("rupee") ||
+          text.includes("rs.")
+        )
+          fallbackCategory = "financial_fraud";
+        else if (
+          text.includes("hack") ||
+          text.includes("compromise") ||
+          text.includes("account")
+        )
+          fallbackCategory = "account_hacking";
+        else if (
+          text.includes("identity") ||
+          text.includes("aadhar") ||
+          text.includes("pan")
+        )
+          fallbackCategory = "identity_theft";
+        else if (text.includes("email")) fallbackCategory = "email_compromise";
+
+        structuredData = {
+          incidentType: fallbackCategory,
+          description: `To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding ${fallbackCategory}. ${description}`,
+        };
+      }
+
       // INCIDENT RESPONSE MODULE:
       // We map the detected incident to expert-vetted guidance.
       // We use a more robust matching strategy to ensure the user gets help even if the AI's label varies slightly.
       let category = (structuredData.incidentType || "").toLowerCase();
-      
+
       // Standardize the category for better matching based on keywords in description or AI result
-      const fullText = (category + " " + (structuredData.description || "") + " " + description).toLowerCase();
-      
-      if (fullText.includes("phish") || fullText.includes("link") || fullText.includes("sms")) category = "phishing";
-      else if (fullText.includes("financial") || fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp") || fullText.includes("debit") || fullText.includes("rs.") || fullText.includes("rupees") || fullText.includes("payment")) category = "financial_fraud";
-      else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook") || fullText.includes("account") || fullText.includes("stolen")) category = "account_hacking";
-      else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat") || fullText.includes("aadhar") || fullText.includes("pan")) category = "identity_theft";
+      const fullText = (
+        category +
+        " " +
+        (structuredData.description || "") +
+        " " +
+        description
+      ).toLowerCase();
+
+      if (
+        fullText.includes("phish") ||
+        fullText.includes("link") ||
+        fullText.includes("sms")
+      )
+        category = "phishing";
+      else if (
+        fullText.includes("financial") ||
+        fullText.includes("fraud") ||
+        fullText.includes("money") ||
+        fullText.includes("bank") ||
+        fullText.includes("transaction") ||
+        fullText.includes("otp") ||
+        fullText.includes("debit") ||
+        fullText.includes("rs.") ||
+        fullText.includes("rupees") ||
+        fullText.includes("payment")
+      )
+        category = "financial_fraud";
+      else if (
+        fullText.includes("hack") ||
+        fullText.includes("compromise") ||
+        fullText.includes("social media") ||
+        fullText.includes("instagram") ||
+        fullText.includes("facebook") ||
+        fullText.includes("account") ||
+        fullText.includes("stolen")
+      )
+        category = "account_hacking";
+      else if (
+        fullText.includes("identity") ||
+        fullText.includes("theft") ||
+        fullText.includes("impersonat") ||
+        fullText.includes("aadhar") ||
+        fullText.includes("pan")
+      )
+        category = "identity_theft";
       else if (fullText.includes("email")) category = "email_compromise";
-      else if (fullText.includes("fedex") || fullText.includes("courier") || fullText.includes("drugs") || fullText.includes("illegal") || fullText.includes("police call") || fullText.includes("arrest")) category = "financial_fraud";
-      
-      const isUncertain = !category || category === "other" || category === "unknown";
-      const guidance = isUncertain ? getResponseGuidance("financial_fraud") : getResponseGuidance(category);
+      else if (
+        fullText.includes("fedex") ||
+        fullText.includes("courier") ||
+        fullText.includes("drugs") ||
+        fullText.includes("illegal") ||
+        fullText.includes("police call") ||
+        fullText.includes("arrest")
+      )
+        category = "financial_fraud";
+
+      const isUncertain =
+        !category || category === "other" || category === "unknown";
+      const guidance = isUncertain
+        ? getResponseGuidance("financial_fraud")
+        : getResponseGuidance(category);
 
       // Add a fallback for the AI response if guidance is still null but we matched a category
       const finalGuidance = guidance;
-      
+
       structuredData.guidance = finalGuidance;
       structuredData.incidentType = category.toUpperCase();
 
       res.json({
         incidentType: category,
-        structuredReport: structuredData
+        structuredReport: structuredData,
       });
-
     } catch (error) {
       console.error("AI Generation Error:", error);
       res.status(500).json({ message: "Failed to generate report analysis" });
@@ -172,7 +323,7 @@ export async function registerRoutes(
   app.post(api.reports.create.path, isAuthenticated, async (req, res) => {
     try {
       const input = api.reports.create.input.parse(req.body);
-      
+
       const prompt = `
         You are a Cyber Crime Reporting Assistant.
         Analyze the following incident description: "${input.rawDescription}"
@@ -200,37 +351,127 @@ export async function registerRoutes(
         Respond ONLY with the valid JSON object.
       `;
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-5.1",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" },
-      });
-      
-      const structuredData = JSON.parse(completion.choices[0].message.content || "{}");
-      
+      let structuredData: any = {};
+      if (openai) {
+        const completion = await openai.chat.completions.create({
+          model: "gpt-5.1",
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" },
+        });
+
+        structuredData = JSON.parse(
+          completion.choices[0].message.content || "{}",
+        );
+      } else {
+        const text = input.rawDescription.toLowerCase();
+        let fallbackCategory = "other";
+        if (
+          text.includes("phish") ||
+          text.includes("link") ||
+          text.includes("sms")
+        )
+          fallbackCategory = "phishing";
+        else if (
+          text.includes("financial") ||
+          text.includes("fraud") ||
+          text.includes("bank") ||
+          text.includes("transaction") ||
+          text.includes("otp") ||
+          text.includes("rupee") ||
+          text.includes("rs.")
+        )
+          fallbackCategory = "financial_fraud";
+        else if (
+          text.includes("hack") ||
+          text.includes("compromise") ||
+          text.includes("account")
+        )
+          fallbackCategory = "account_hacking";
+        else if (
+          text.includes("identity") ||
+          text.includes("aadhar") ||
+          text.includes("pan")
+        )
+          fallbackCategory = "identity_theft";
+        else if (text.includes("email")) fallbackCategory = "email_compromise";
+
+        structuredData = {
+          incidentType: fallbackCategory,
+          description: `To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding ${fallbackCategory}. ${input.rawDescription}`,
+        };
+      }
+
       // Standardize the category for better matching
       let category = (structuredData.incidentType || "").toLowerCase();
-      const fullText = (category + " " + (structuredData.description || "") + " " + input.rawDescription).toLowerCase();
-      
-      if (fullText.includes("phish") || fullText.includes("link") || fullText.includes("sms")) category = "phishing";
-      else if (fullText.includes("financial") || fullText.includes("fraud") || fullText.includes("money") || fullText.includes("bank") || fullText.includes("transaction") || fullText.includes("otp") || fullText.includes("debit") || fullText.includes("rs.") || fullText.includes("rupees") || fullText.includes("payment")) category = "financial_fraud";
-      else if (fullText.includes("hack") || fullText.includes("compromise") || fullText.includes("social media") || fullText.includes("instagram") || fullText.includes("facebook") || fullText.includes("account") || fullText.includes("stolen")) category = "account_hacking";
-      else if (fullText.includes("identity") || fullText.includes("theft") || fullText.includes("impersonat") || fullText.includes("aadhar") || fullText.includes("pan")) category = "identity_theft";
-      else if (fullText.includes("email")) category = "email_compromise";
-      else if (fullText.includes("fedex") || fullText.includes("courier") || fullText.includes("drugs") || fullText.includes("illegal") || fullText.includes("arrest")) category = "financial_fraud";
+      const fullText = (
+        category +
+        " " +
+        (structuredData.description || "") +
+        " " +
+        input.rawDescription
+      ).toLowerCase();
 
-      const isUncertain = !category || category === "other" || category === "unknown";
-      const guidance = isUncertain ? getResponseGuidance("financial_fraud") : getResponseGuidance(category);
+      if (
+        fullText.includes("phish") ||
+        fullText.includes("link") ||
+        fullText.includes("sms")
+      )
+        category = "phishing";
+      else if (
+        fullText.includes("financial") ||
+        fullText.includes("fraud") ||
+        fullText.includes("money") ||
+        fullText.includes("bank") ||
+        fullText.includes("transaction") ||
+        fullText.includes("otp") ||
+        fullText.includes("debit") ||
+        fullText.includes("rs.") ||
+        fullText.includes("rupees") ||
+        fullText.includes("payment")
+      )
+        category = "financial_fraud";
+      else if (
+        fullText.includes("hack") ||
+        fullText.includes("compromise") ||
+        fullText.includes("social media") ||
+        fullText.includes("instagram") ||
+        fullText.includes("facebook") ||
+        fullText.includes("account") ||
+        fullText.includes("stolen")
+      )
+        category = "account_hacking";
+      else if (
+        fullText.includes("identity") ||
+        fullText.includes("theft") ||
+        fullText.includes("impersonat") ||
+        fullText.includes("aadhar") ||
+        fullText.includes("pan")
+      )
+        category = "identity_theft";
+      else if (fullText.includes("email")) category = "email_compromise";
+      else if (
+        fullText.includes("fedex") ||
+        fullText.includes("courier") ||
+        fullText.includes("drugs") ||
+        fullText.includes("illegal") ||
+        fullText.includes("arrest")
+      )
+        category = "financial_fraud";
+
+      const isUncertain =
+        !category || category === "other" || category === "unknown";
+      const guidance = isUncertain
+        ? getResponseGuidance("financial_fraud")
+        : getResponseGuidance(category);
       structuredData.guidance = guidance;
-      
+
       const reportData = {
-        // @ts-ignore
-        userId: req.user.claims.sub,
+        userId: (req.session as any)?.user?.id,
         title: input.title,
         rawDescription: input.rawDescription,
         incidentType: category.toUpperCase(),
         structuredReport: structuredData,
-        status: "draft"
+        status: "draft",
       };
 
       const report = await storage.createReport(reportData);
