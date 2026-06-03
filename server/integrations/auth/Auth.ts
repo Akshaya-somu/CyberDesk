@@ -8,12 +8,16 @@ import { authStorage } from "./storage";
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
+
   const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
+    conString: `${process.env.DATABASE_URL}${
+      process.env.DATABASE_URL?.includes("?") ? "&" : "?"
+    }sslmode=require`,
     createTableIfMissing: true,
     ttl: sessionTtl,
     tableName: "sessions",
   });
+
   return session({
     secret: process.env.SESSION_SECRET || "dev-secret",
     store: sessionStore,
@@ -37,8 +41,10 @@ interface LocalUser {
 
 async function ensureAdmin() {
   const existing = await authStorage.getUserByUsername("admin");
+
   if (!existing) {
     const passwordHash = await hash("admin123", 10);
+
     await authStorage.upsertUser({
       id: uuidv4(),
       username: "admin",
@@ -52,6 +58,7 @@ async function ensureAdmin() {
 export async function setupAuth(app: Express) {
   app.set("trust proxy", 1);
   app.use(getSession());
+
   // ensure demo admin exists
   await ensureAdmin();
 }
@@ -64,15 +71,22 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
 export async function loginHandler(req: any, res: any) {
   try {
     const { username, password } = req.body || {};
-    if (!username || !password)
+
+    if (!username || !password) {
       return res.status(400).json({ message: "Missing credentials" });
+    }
 
     const user = await authStorage.getUserByUsername(username);
-    if (!user || !user.passwordHash)
+
+    if (!user || !user.passwordHash) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const ok = await compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ message: "Invalid credentials" });
+
+    if (!ok) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const displayName =
       user.firstName || user.lastName
@@ -84,6 +98,7 @@ export async function loginHandler(req: any, res: any) {
       username: user.username,
       displayName,
     };
+
     res.json({
       id: user.id,
       username: user.username,
@@ -97,13 +112,20 @@ export async function loginHandler(req: any, res: any) {
 
 export function logoutHandler(req: any, res: any) {
   req.session?.destroy((err: any) => {
-    if (err) console.error("Session destroy error:", err);
+    if (err) {
+      console.error("Session destroy error:", err);
+    }
+
     res.json({ ok: true });
   });
 }
 
 export function getUserHandler(req: any, res: any) {
   const user = (req.session as any)?.user;
-  if (!user) return res.json(null);
+
+  if (!user) {
+    return res.json(null);
+  }
+
   res.json(user);
 }
