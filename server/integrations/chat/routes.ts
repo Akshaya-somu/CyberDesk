@@ -1,12 +1,9 @@
 import type { Express, Request, Response } from "express";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { chatStorage } from "./storage";
 
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      baseURL: process.env.OPENAI_BASE_URL,
-    })
+const genAI = process.env.GEMINI_API_KEY
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
 
 export function registerChatRoutes(app: Express): void {
@@ -25,12 +22,19 @@ export function registerChatRoutes(app: Express): void {
   app.get("/api/conversations/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(String(req.params.id), 10);
+
       const conversation = await chatStorage.getConversation(id);
+
       if (!conversation) {
         return res.status(404).json({ error: "Conversation not found" });
       }
+
       const messages = await chatStorage.getMessagesByConversation(id);
-      res.json({ ...conversation, messages });
+
+      res.json({
+        ...conversation,
+        messages,
+      });
     } catch (error) {
       console.error("Error fetching conversation:", error);
       res.status(500).json({ error: "Failed to fetch conversation" });
@@ -41,9 +45,11 @@ export function registerChatRoutes(app: Express): void {
   app.post("/api/conversations", async (req: Request, res: Response) => {
     try {
       const { title } = req.body;
+
       const conversation = await chatStorage.createConversation(
         title || "New Chat",
       );
+
       res.status(201).json(conversation);
     } catch (error) {
       console.error("Error creating conversation:", error);
@@ -55,7 +61,9 @@ export function registerChatRoutes(app: Express): void {
   app.delete("/api/conversations/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(String(req.params.id), 10);
+
       await chatStorage.deleteConversation(id);
+
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting conversation:", error);
@@ -63,7 +71,7 @@ export function registerChatRoutes(app: Express): void {
     }
   });
 
-  // Send message and get AI response (streaming)
+  // Send message and get AI response
   app.post(
     "/api/conversations/:id/messages",
     async (req: Request, res: Response) => {
@@ -74,61 +82,56 @@ export function registerChatRoutes(app: Express): void {
         // Save user message
         await chatStorage.createMessage(conversationId, "user", content);
 
-        // Get conversation history for context
+        // Get conversation history
         const messages =
           await chatStorage.getMessagesByConversation(conversationId);
+
         const chatMessages = messages.map((m) => ({
-          role: m.role as "user" | "assistant",
+          role: m.role,
           content: m.content,
         }));
 
-        // Set up SSE
-        res.setHeader("Content-Type", "text/event-stream");
-        res.setHeader("Cache-Control", "no-cache");
-        res.setHeader("Connection", "keep-alive");
-
-        if (!openai) {
-          return res.status(503).json({ error: "OpenAI not configured" });
+        if (!genAI) {
+          return res.status(503).json({ error: "Gemini not configured" });
         }
 
-        // Stream response from OpenAI
-        const stream = await openai.chat.completions.create({
-          model: "gpt-5.1",
-          messages: chatMessages,
-          stream: true,
-          max_completion_tokens: 2048,
+        const model = genAI.getGenerativeModel({
+          model: "gemini-1.5-flash",
         });
 
-        let fullResponse = "";
+        const prompt = `
+You are CyberGuard Assistant, a cybersecurity assistant.
 
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || "";
-          if (content) {
-            fullResponse += content;
-            res.write(`data: ${JSON.stringify({ content })}\n\n`);
-          }
-        }
+Provide:
+- Simple explanations
+- Safe cybersecurity advice
+- Clear step-by-step guidance
+- Beginner-friendly answers
 
-        // Save assistant message
+Conversation:
+${chatMessages.map((m) => `${m.role}: ${m.content}`).join("\n")}
+`;
+
+        const result = await model.generateContent(prompt);
+
+        const fullResponse = result.response.text();
+
+        // Save assistant response
         await chatStorage.createMessage(
           conversationId,
           "assistant",
           fullResponse,
         );
 
-        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-        res.end();
+        res.json({
+          content: fullResponse,
+        });
       } catch (error) {
         console.error("Error sending message:", error);
-        // Check if headers already sent (SSE streaming started)
-        if (res.headersSent) {
-          res.write(
-            `data: ${JSON.stringify({ error: "Failed to send message" })}\n\n`,
-          );
-          res.end();
-        } else {
-          res.status(500).json({ error: "Failed to send message" });
-        }
+
+        res.status(500).json({
+          error: "Failed to send message",
+        });
       }
     },
   );

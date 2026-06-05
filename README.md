@@ -1,105 +1,252 @@
-# CyberDesk
+# 🛡️ CyberDesk
 
-## Overview
+## 🚀 Overview
 
-CyberDesk is an AI-powered cybercrime incident reporting platform that helps non-technical victims transform unstructured incident descriptions into formal, FIR-style (First Information Report) security reports. The platform uses Natural Language Processing and Generative AI to extract incident details, categorize cybercrime types (phishing, financial fraud, identity theft, etc.), and provide immediate actionable guidance for securing accounts and preserving evidence.
+CyberDesk is an AI-powered cybercrime incident reporting and response platform designed to help users report cybercrime incidents in a simple and structured manner.
 
-## User Preferences
+The platform transforms unstructured incident descriptions into formal FIR-style cybercrime reports, identifies cybercrime categories, generates security recommendations, and provides immediate response guidance. It helps victims of phishing attacks, online fraud, account hacking, identity theft, cyberstalking, and social media scams take the right actions quickly.
 
-Preferred communication style: Simple, everyday language.
+CyberDesk bridges the gap between non-technical users and cybersecurity processes by simplifying incident reporting and providing AI-assisted guidance.
 
-## System Architecture
+---
 
-### Frontend Architecture
+## ✨ Features
 
-- **Framework**: React 18 with TypeScript
-- **Routing**: Wouter (lightweight alternative to React Router)
-- **State Management**: TanStack React Query for server state
-- **UI Components**: shadcn/ui component library built on Radix UI primitives
-- **Styling**: Tailwind CSS with custom design tokens and CSS variables for theming
-- **Animations**: Framer Motion for page transitions and UI animations
-- **Build Tool**: Vite with path aliases (@/, @shared/, @assets/)
+### 🤖 AI-Powered Incident Analysis
 
-### Backend Architecture
+- Converts user incident descriptions into structured cybercrime reports.
+- Identifies cybercrime categories automatically.
+- Generates severity assessments.
+- Provides intelligent security recommendations.
+- Extracts relevant evidence details.
 
-- **Runtime**: Node.js with Express
-- **Language**: TypeScript with ESM modules
-- **API Style**: RESTful endpoints under /api prefix
-- **Authentication**: OpenID Connect (hosted provider) with Passport.js and session-based auth stored in PostgreSQL
-- **AI Integration**: OpenAI API (direct integration) for report generation and chat assistance
+### 📄 FIR Report Generation
 
-### Data Layer
+- Generates formal FIR-style cybercrime reports.
+- Creates structured complaint documents.
+- Supports PDF report downloads.
+- Maintains a professional reporting format.
 
-- **Database**: PostgreSQL
-- **ORM**: Drizzle ORM with drizzle-zod for schema validation
-- **Schema Location**: shared/schema.ts with models in shared/models/
-- **Migrations**: Drizzle Kit with migrations output to ./migrations
+### 🚨 Incident Response Guidance
 
-### Key Data Models
+- Immediate mitigation steps.
+- Security recommendations.
+- Evidence preservation guidance.
+- Recovery and prevention suggestions.
 
-- **Users**: Authentication and profile data (required for authentication)
-- **Sessions**: Session storage for auth persistence
-- **Reports**: Cybercrime incident reports with structured JSON data
-- **Conversations/Messages**: Chat history for AI assistant
+### 💬 Cyber Assistant
 
-### Project Structure
+- AI-powered cybersecurity assistant.
+- Answers cybersecurity-related queries.
+- Provides awareness and safety recommendations.
+- Helps users understand cyber threats and best practices.
 
+### 🔐 User Authentication
+
+- Secure username and password login.
+- Session-based authentication.
+- Persistent login sessions using PostgreSQL.
+
+### 📂 Report Management
+
+- Create and manage incident reports.
+- View previously generated reports.
+- Download reports as PDF documents.
+
+---
+
+## 🛠️ Technology Stack
+
+### 🎨 Frontend
+
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui
+- Framer Motion
+- TanStack React Query
+
+### ⚙️ Backend
+
+- Node.js
+- Express.js
+- TypeScript
+
+### 🗄️ Database
+
+- PostgreSQL
+- Drizzle ORM
+
+### 🧠 AI & NLP
+
+- Google Gemini API
+- Natural Language Processing (NLP)
+- AI-powered Incident Analysis
+- Cybersecurity Assistance
+
+---
+
+## 📁 Project Structure
+
+```text
+client/
+│
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── hooks/
+│   └── lib/
+│
+server/
+│
+├── integrations/
+│   ├── auth/
+│   ├── chat/
+│   ├── audio/
+│   └── image/
+│
+├── routes.ts
+├── db.ts
+└── storage.ts
+│
+shared/
+│
+├── schema.ts
+├── models/
+└── routes.ts
 ```
-client/           # React frontend
-  src/
-    components/   # UI components including shadcn/ui
-    pages/        # Route pages (dashboard, new-report, chat, etc.)
-    hooks/        # React Query hooks for data fetching
-    lib/          # Utilities and query client
-server/           # Express backend
-  integrations/  # Modular integrations (auth, chat, audio, image)
-  routes.ts       # API route definitions
-  storage.ts      # Database access layer
-shared/           # Shared types and schemas
-  schema.ts       # Drizzle database schema
-  routes.ts       # API contract definitions with Zod
-  models/         # Auth and chat model definitions
+
+---
+
+## 🗃️ Database Models
+
+### 👤 Users
+
+Stores user authentication and profile information.
+
+### 📝 Reports
+
+Stores generated cybercrime reports and analysis results.
+
+### 💭 Conversations
+
+Stores chatbot conversation sessions.
+
+### 📨 Messages
+
+Stores messages exchanged between users and the cyber assistant.
+
+### 🔑 Sessions
+
+Maintains authenticated user sessions.
+
+---
+
+## 🔧 Environment Variables
+
+Create a `.env` file and configure the following:
+
+```env
+DATABASE_URL=your_postgresql_connection_string
+SESSION_SECRET=your_secret_key
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
-### Build & Development
+---
 
-- **Dev**: `npm run dev` runs tsx for hot-reloading
-- **Build**: Custom build script using esbuild (server) and Vite (client)
-- **Production**: Server bundles dependencies for faster cold starts
+## ⚡ Installation
 
-## External Dependencies
+### 📥 Clone Repository
 
-### AI Services
+```bash
+git clone https://github.com/Akshaya-somu/CyberDesk.git
+cd CyberDesk
+```
 
-- **OpenAI API**: Used for:
-  - Report generation (NLP extraction and FIR formatting)
-  - Chat assistant for cybersecurity guidance
-  - Voice transcription and text-to-speech capabilities
-- Environment variables: `OPENAI_API_KEY`, `OPENAI_BASE_URL`
+### 📦 Install Dependencies
 
-### Database
+```bash
+npm install
+```
 
-- **PostgreSQL**: Primary data store
-- Environment variable: `DATABASE_URL`
-- Session storage via `connect-pg-simple`
+### 🔧 Configure Environment Variables
 
-### Authentication
+Create a `.env` file:
 
-- **OpenID Connect**: Standard OpenID Connect provider (hosted provider)
-- Environment variables: `ISSUER_URL`, `APP_ID`, `SESSION_SECRET`
+```env
+DATABASE_URL=your_postgresql_connection_string
+SESSION_SECRET=your_secret_key
+GEMINI_API_KEY=your_gemini_api_key
+```
 
-### Audio Processing
+### 🗄️ Setup Database
 
-- **FFmpeg**: Used server-side for audio format conversion (WebM to WAV for transcription)
-- AudioWorklet API on client for real-time audio playback
+```bash
+npm run db:push
+```
 
-### Key NPM Packages
+### ▶️ Start Development Server
 
-- `drizzle-orm` / `drizzle-kit`: Database ORM and migrations
-- `openai`: AI API client
-- `passport` / `openid-client`: Authentication
-- `express-session` / `connect-pg-simple`: Session management
-- `zod`: Runtime type validation
-- `@tanstack/react-query`: Client-side data fetching
-- `framer-motion`: Animations
-- `date-fns`: Date formatting
+```bash
+npm run dev
+```
+
+---
+
+## 🌟 Core Workflow
+
+1. User submits cybercrime incident details.
+2. AI analyzes the incident.
+3. CyberDesk identifies the cybercrime category.
+4. Structured FIR report is generated.
+5. Security recommendations are provided.
+6. Incident response guidance is displayed.
+7. User downloads the FIR report as PDF.
+
+---
+
+## ☁️ Deployment
+
+CyberDesk is deployed using:
+
+- 🚀 Render Web Service
+- 🗄️ Render PostgreSQL Database
+- 🔄 GitHub Continuous Deployment
+
+### Live Demo
+
+🌐 https://cyberdesk-s68d.onrender.com
+
+---
+
+## 🔮 Future Enhancements
+
+- 🤖 Enhanced Gemini-powered Cyber Assistant
+- 🌍 Multi-language support
+- 📊 Advanced analytics dashboard
+- 📧 Email and SMS alert integration
+- 🛡️ Threat intelligence integration
+- 📱 Mobile-friendly experience
+
+---
+
+## 🎓 Academic Project
+
+CyberDesk was developed as an academic project to leverage Artificial Intelligence and Cybersecurity technologies for simplifying cybercrime reporting, incident analysis, and user guidance.
+
+---
+
+## 👩‍💻 Developer
+
+**Akshaya Somu**
+B.Tech – Computer Science and Engineering
+Shri Vishnu Engineering College for Women (SVECW)
+
+GitHub: https://github.com/Akshaya-somu
+
+---
+
+## 📜 License
+
+This project is intended for academic and educational purposes only.
