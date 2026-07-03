@@ -26,6 +26,25 @@ export function ChatInterface() {
     useChatHistory(conversationId);
   const { mutateAsync: createConversation } = useCreateConversation();
 
+  const renderAssistantContent = (content: string) => {
+    const sections = content
+      .split(/\n{2,}/)
+      .map((section) => section.trim())
+      .filter(Boolean);
+
+    return sections.length > 1 ? (
+      <div className="space-y-3">
+        {sections.map((section, index) => (
+          <p key={index} className="whitespace-pre-wrap break-words">
+            {section}
+          </p>
+        ))}
+      </div>
+    ) : (
+      <p className="whitespace-pre-wrap break-words">{content}</p>
+    );
+  };
+
   useEffect(() => {
     // Initialize a new conversation if none selected
     if (!conversationId && !isHistoryLoading) {
@@ -183,7 +202,9 @@ export function ChatInterface() {
                     : "bg-card border border-border rounded-tl-sm text-foreground",
                 )}
               >
-                {msg.content}
+                {msg.role === "assistant"
+                  ? renderAssistantContent(msg.content)
+                  : msg.content}
               </div>
             </div>
           ))}

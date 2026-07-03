@@ -20,6 +20,12 @@ Provide:
 - Safe cybersecurity advice
 - Clear step-by-step guidance
 - Beginner-friendly answers
+
+Answer in a clean, structured format:
+- Use short headings when helpful.
+- Prefer bullets or numbered steps over long paragraphs.
+- Keep each idea on its own line.
+- Avoid dense wall-of-text responses.
 `;
 
 export function registerChatRoutes(app: Express): void {
