@@ -115,39 +115,158 @@ const INCIDENT_RESPONSE_STEPS: Record<string, any> = {
 
 function buildFirPrompt(description: string): string {
   return `
-You are a Cyber Crime Reporting Assistant.
-Analyze the following incident description: "${description}"
+You are a Cyber Security Analyst and Digital Forensics Investigator.
+Analyze the incident below and generate a professional Cyber Incident Investigation Report followed by an FIR-style complaint.
 
-Extract and format the information into a structured JSON object according to the FIR (First Information Report) style.
-CRITICAL INSTRUCTION: Do NOT include placeholders like "[address]", "[date]", "[unknown]" or similar tags.
-If a detail is missing, use the phrase "Information not available at the time of reporting".
+Do NOT copy the user's paragraph directly.
+Extract entities, classify the attack, infer severity, identify affected assets, and summarize the incident in investigation quality language.
 
-The description field must read like an official FIR draft and must be easy to submit directly.
-Format it with clear section headings separated by blank lines, using this structure:
-To, The Officer-in-Charge, Cyber Crime Police Station.
-Subject: Complaint regarding [Incident Type].
-Complainant Details:
-Incident Summary:
-Chronological Description of the Incident:
-Financial Loss Details:
-Evidence List:
-Request for Action:
-Closing Statement:
+Incident description:
+"${description}"
 
-Write complete sentences under each heading. Keep the language formal, readable, and concise.
-Use line breaks between sections and avoid one long paragraph.
+Return ONLY valid JSON with the following top-level structure:
+{
+  "incidentType": "primary incident category",
+  "description": "final FIR draft",
+  "executiveSummary": {
+    "incidentType": "",
+    "attackVector": "",
+    "severityLevel": "",
+    "dateAndTime": "",
+    "victim": "",
+    "organization": "",
+    "overallImpact": ""
+  },
+  "classification": {
+    "primaryAttack": "",
+    "attackTypes": [""],
+    "initialAttackVector": "",
+    "severity": ""
+  },
+  "entities": {
+    "victimName": "",
+    "organization": "",
+    "department": "",
+    "designation": "",
+    "date": "",
+    "time": "",
+    "emailAddress": "",
+    "phoneNumber": "",
+    "maliciousFileName": "",
+    "fileExtension": "",
+    "domainNames": [""],
+    "urls": [""],
+    "ipAddresses": [""],
+    "walletAddress": "",
+    "bankAccount": "",
+    "amountLost": "",
+    "ransomAmount": "",
+    "networkLocation": "",
+    "operatingSystem": "",
+    "fileExtensionCreated": "",
+    "threatActor": ""
+  },
+  "incidentTimeline": [
+    { "time": "", "event": "" }
+  ],
+  "technicalAnalysis": {
+    "attackMethod": "",
+    "deliveryMechanism": "",
+    "payload": "",
+    "malwareBehaviour": "",
+    "persistence": "",
+    "encryptionActivity": "",
+    "privilegeEscalation": "",
+    "lateralMovement": "",
+    "affectedNetworkResources": [""]
+  },
+  "iocs": {
+    "maliciousFileNames": [""],
+    "fileExtensions": [""],
+    "domains": [""],
+    "urls": [""],
+    "ipAddresses": [""],
+    "registryKeys": [""],
+    "hashes": [""],
+    "emailSubjects": [""],
+    "emailHeaders": [""],
+    "suspiciousAttachments": [""],
+    "walletAddresses": [""]
+  },
+  "assetsAffected": [""],
+  "impactAssessment": {
+    "businessImpact": "",
+    "financialImpact": "",
+    "operationalImpact": "",
+    "dataAvailability": "",
+    "confidentiality": "",
+    "integrity": "",
+    "overallSeverityScore": "",
+    "severityRationale": ""
+  },
+  "evidenceSummary": [""],
+  "immediateActionsTaken": [""],
+  "recommendedNextSteps": [""],
+  "firDraft": "",
+  "annexure": [""],
+  "aiConfidenceScore": 0,
+  "modeOfAttack": "",
+  "impact": "",
+  "suggestedCategory": "",
+  "nextSteps": [""],
+  "generatedReportText": "",
+  "extractedDetails": {}
+}
 
-JSON fields to include:
-- incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft, email_compromise].
-- description: The formatted FIR draft.
-- modeOfAttack: e.g. "SMS", "Phone Call" (if known).
-- impact: The loss or damage.
-- suggestedCategory: Broader category.
-- extractedDetails: A JSON object containing only keys that were explicitly mentioned (e.g., date, platform, suspect_details, loss_amount).
-- nextSteps: AI-generated specific response instructions based on the incident.
+Rules:
+- Classify multiple attack types if needed.
+- Use a Critical/High/Medium/Low severity label.
+- If a field is unavailable, use "Information not available at the time of reporting".
+- Make the FIR draft formal and submission-ready for the Cyber Crime Police Station.
+- The FIR draft should be a polished legal complaint, not a copy of the user input.
+- The report should be concise, readable, and suitable for law enforcement or incident response teams.
+- If possible, infer likely victim, organization, and asset details from the text.
+- Keep line breaks and section headings inside the FIR draft.
 
-Respond ONLY with the valid JSON object.
+Respond ONLY with valid JSON.
 `;
+}
+
+function normalizeGeneratedReport(
+  report: Record<string, any>,
+  fallbackDescription: string,
+) {
+  const firDraft = report.firDraft || report.description || fallbackDescription;
+
+  return {
+    ...report,
+    incidentType: report.incidentType || "other",
+    description: firDraft,
+    firDraft,
+    aiConfidenceScore:
+      typeof report.aiConfidenceScore === "number"
+        ? report.aiConfidenceScore
+        : 75,
+    recommendedNextSteps: Array.isArray(report.recommendedNextSteps)
+      ? report.recommendedNextSteps
+      : Array.isArray(report.nextSteps)
+        ? report.nextSteps
+        : [],
+    evidenceSummary: Array.isArray(report.evidenceSummary)
+      ? report.evidenceSummary
+      : [],
+    immediateActionsTaken: Array.isArray(report.immediateActionsTaken)
+      ? report.immediateActionsTaken
+      : [],
+    annexure: Array.isArray(report.annexure) ? report.annexure : [],
+    assetsAffected: Array.isArray(report.assetsAffected)
+      ? report.assetsAffected
+      : [],
+    incidentTimeline: Array.isArray(report.incidentTimeline)
+      ? report.incidentTimeline
+      : [],
+    entities: report.entities || report.extractedDetails || {},
+  };
 }
 
 export async function registerRoutes(
@@ -206,7 +325,10 @@ export async function registerRoutes(
         const responseContent = completion.choices[0].message.content;
         if (!responseContent) throw new Error("Empty response from AI");
 
-        structuredData = JSON.parse(responseContent);
+        structuredData = normalizeGeneratedReport(
+          JSON.parse(responseContent),
+          description,
+        );
       } else {
         // Fallback simple analysis when OpenAI not configured
         const text = description.toLowerCase();
@@ -244,6 +366,34 @@ export async function registerRoutes(
         structuredData = {
           incidentType: fallbackCategory,
           description: `To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding ${fallbackCategory}. ${description}`,
+          firDraft: `To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding ${fallbackCategory}. ${description}`,
+          aiConfidenceScore: 35,
+          classification: {
+            primaryAttack: fallbackCategory,
+            attackTypes: [fallbackCategory],
+            initialAttackVector:
+              "Information not available at the time of reporting",
+            severity: "Medium",
+          },
+          executiveSummary: {
+            incidentType: fallbackCategory,
+            attackVector: "Information not available at the time of reporting",
+            severityLevel: "Medium",
+            dateAndTime: "Information not available at the time of reporting",
+            victim: "Information not available at the time of reporting",
+            organization: "Information not available at the time of reporting",
+            overallImpact: description,
+          },
+          entities: {},
+          incidentTimeline: [],
+          technicalAnalysis: {},
+          iocs: {},
+          assetsAffected: [],
+          impactAssessment: {},
+          evidenceSummary: [],
+          immediateActionsTaken: [],
+          recommendedNextSteps: [],
+          annexure: [],
         };
       }
 
@@ -320,6 +470,10 @@ export async function registerRoutes(
 
       structuredData.guidance = finalGuidance;
       structuredData.incidentType = category.toUpperCase();
+      structuredData.description =
+        structuredData.firDraft || structuredData.description;
+      structuredData.firDraft =
+        structuredData.firDraft || structuredData.description;
 
       res.json({
         incidentType: category,
@@ -346,8 +500,9 @@ export async function registerRoutes(
           response_format: { type: "json_object" },
         });
 
-        structuredData = JSON.parse(
-          completion.choices[0].message.content || "{}",
+        structuredData = normalizeGeneratedReport(
+          JSON.parse(completion.choices[0].message.content || "{}"),
+          input.rawDescription,
         );
       } else {
         const text = input.rawDescription.toLowerCase();
@@ -385,6 +540,34 @@ export async function registerRoutes(
         structuredData = {
           incidentType: fallbackCategory,
           description: `To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding ${fallbackCategory}. ${input.rawDescription}`,
+          firDraft: `To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding ${fallbackCategory}. ${input.rawDescription}`,
+          aiConfidenceScore: 35,
+          classification: {
+            primaryAttack: fallbackCategory,
+            attackTypes: [fallbackCategory],
+            initialAttackVector:
+              "Information not available at the time of reporting",
+            severity: "Medium",
+          },
+          executiveSummary: {
+            incidentType: fallbackCategory,
+            attackVector: "Information not available at the time of reporting",
+            severityLevel: "Medium",
+            dateAndTime: "Information not available at the time of reporting",
+            victim: "Information not available at the time of reporting",
+            organization: "Information not available at the time of reporting",
+            overallImpact: input.rawDescription,
+          },
+          entities: {},
+          incidentTimeline: [],
+          technicalAnalysis: {},
+          iocs: {},
+          assetsAffected: [],
+          impactAssessment: {},
+          evidenceSummary: [],
+          immediateActionsTaken: [],
+          recommendedNextSteps: [],
+          annexure: [],
         };
       }
 
@@ -451,6 +634,10 @@ export async function registerRoutes(
         ? getResponseGuidance("financial_fraud")
         : getResponseGuidance(category);
       structuredData.guidance = guidance;
+      structuredData.description =
+        structuredData.firDraft || structuredData.description;
+      structuredData.firDraft =
+        structuredData.firDraft || structuredData.description;
 
       const reportData = {
         userId: (req.session as any)?.user?.id,

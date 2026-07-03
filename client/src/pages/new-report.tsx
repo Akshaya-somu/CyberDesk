@@ -18,40 +18,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { FirDocument } from "@/components/fir-document";
 
-function formatIncidentTypeLabel(value?: string) {
-  if (!value) return "Cyber Crime";
-
-  return value
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase())
-    .trim();
-}
-
-function toPrintableText(value?: unknown) {
-  if (typeof value !== "string" || !value.trim()) {
-    return "Information not available";
-  }
-
-  return value.trim();
-}
-
-function toPrintableList(value?: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value
-      .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
-}
-
 type Step = "input" | "processing" | "review";
 
 export default function NewReport() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [step, setStep] = useState<Step>("input");
+  const [draftReportId, setDraftReportId] = useState("");
+  const [generatedAt, setGeneratedAt] = useState("");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -73,8 +47,11 @@ export default function NewReport() {
 
     setStep("processing");
     try {
+      const draftId = `DRAFT-${Date.now().toString().slice(-6)}`;
       const result = await generateReport.mutateAsync(description);
       setAnalysis(result);
+      setDraftReportId(draftId);
+      setGeneratedAt(new Date().toISOString());
       setStep("review");
     } catch (error) {
       setStep("input");
@@ -104,16 +81,6 @@ export default function NewReport() {
       printArea.style.display = "none";
     });
   };
-
-  const incidentLabel = formatIncidentTypeLabel(
-    analysis?.structuredReport?.incidentType,
-  );
-  const extractedDetails = analysis?.structuredReport?.extractedDetails ?? {};
-  const guidance = analysis?.structuredReport?.guidance;
-  const evidenceItems = [
-    ...toPrintableList(guidance?.evidence),
-    ...toPrintableList(extractedDetails?.evidence),
-  ];
 
   return (
     <div className="max-w-4xl mx-auto py-8">
@@ -255,142 +222,13 @@ export default function NewReport() {
             </div>
 
             <div id="fir-print-area" style={{ display: "none" }}>
-              <div className="print-letter">
-                <div className="print-header">
-                  <h1>Sample Cyber Crime Complaint Letter (Offline Filing)</h1>
-                  <div className="print-recipient">
-                    <p>To,</p>
-                    <p>The Head,</p>
-                    <p>Cyber Crime Cell,</p>
-                    <p>[City Name] Police Department,</p>
-                    <p>[Full Address of Cyber Crime Cell, if known]</p>
-                  </div>
-                  <div className="print-meta">
-                    <span>
-                      <strong>Date:</strong> {new Date().toLocaleDateString()}
-                    </span>
-                    <span>
-                      <strong>Report Draft:</strong> {title || "New FIR"}
-                    </span>
-                  </div>
-                  <p className="print-subject">
-                    <strong>Subject:</strong> Complaint Regarding{" "}
-                    {incidentLabel}
-                  </p>
-                </div>
-
-                <p>Respected Sir/Madam,</p>
-
-                <p>
-                  I am writing to formally lodge a complaint regarding a cyber
-                  crime incident that has been generated through CyberDesk. The
-                  details of the incident are provided below for your kind
-                  perusal and necessary action.
-                </p>
-
-                <div className="print-section">
-                  <h2>1. Complainant Details:</h2>
-                  <p>
-                    <strong>Full Name:</strong> [Your Full Name]
-                  </p>
-                  <p>
-                    <strong>Contact Number:</strong> [Your Mobile Number]
-                  </p>
-                  <p>
-                    <strong>Email Address:</strong> [Your Email Address]
-                  </p>
-                  <p>
-                    <strong>Residential Address:</strong> [Your Full Address
-                    with PIN Code]
-                  </p>
-                  <p>
-                    <strong>ID Proof Enclosed:</strong> [Aadhaar/PAN/Voter ID -
-                    mention whichever attached]
-                  </p>
-                </div>
-
-                <div className="print-section">
-                  <h2>2. Incident Details:</h2>
-                  <p>
-                    <strong>Date & Time of Incident:</strong> [DD/MM/YYYY and
-                    approx. time]
-                  </p>
-                  <p>
-                    <strong>Type of Cyber Crime:</strong> {incidentLabel}
-                  </p>
-                  <p>
-                    <strong>Description of Incident:</strong>
-                  </p>
-                  <p className="print-paragraph">
-                    {toPrintableText(
-                      analysis?.structuredReport?.description || description,
-                    )}
-                  </p>
-                </div>
-
-                <div className="print-section">
-                  <h2>3. Suspect Details (if known):</h2>
-                  <p className="print-paragraph">
-                    {toPrintableText(
-                      extractedDetails?.suspect_details ||
-                        extractedDetails?.suspectDetails ||
-                        extractedDetails?.suspect ||
-                        "Information not available. Include any email ID, phone number, bank account, social media handle, or link if known.",
-                    )}
-                  </p>
-                </div>
-
-                <div className="print-section">
-                  <h2>4. Evidence Attached:</h2>
-                  <p>
-                    [List and enclose copies/screenshots of relevant documents
-                    or evidence, such as:]
-                  </p>
-                  <ul className="print-bullets">
-                    {(evidenceItems.length > 0
-                      ? evidenceItems
-                      : [
-                          "Chat screenshots",
-                          "Email transcripts",
-                          "Bank transaction details",
-                          "Fraudulent links or profiles",
-                          "Call logs",
-                          "Any other supporting evidence",
-                        ]
-                    ).map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <p>
-                  I assure you of my full cooperation in the investigation and
-                  am ready to provide any further information required.
-                </p>
-
-                <p>Thanking you,</p>
-
-                <p>Yours sincerely,</p>
-                <p>[Your Signature (if submitting physically)]</p>
-                <p>[Your Full Name]</p>
-                <p>[Contact Number]</p>
-                <p>[Email Address]</p>
-
-                <div className="print-section">
-                  <h2>Enclosures:</h2>
-                  <ol className="print-numbered">
-                    <li>Copy of ID proof</li>
-                    <li>Screenshots and documents (list them)</li>
-                    <li>[Any other documents attached]</li>
-                  </ol>
-                </div>
-
-                <div className="print-footer">
-                  Generated by CyberDesk for offline filing. Submit this
-                  complaint to the nearest Cyber Crime Police Station or the
-                  official cybercrime portal.
-                </div>
-              </div>
+              <FirDocument
+                title={title || "Cyber Incident Investigation Report"}
+                reportId={draftReportId || "Information not available"}
+                generatedAt={generatedAt || new Date().toISOString()}
+                structuredReport={analysis?.structuredReport}
+                rawDescription={description}
+              />
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
@@ -405,12 +243,13 @@ export default function NewReport() {
                   </div>
 
                   <div className="space-y-6">
-                    {analysis.structuredReport.description && (
-                      <FirDocument
-                        title="Dynamic Official Report"
-                        text={analysis.structuredReport.description}
-                      />
-                    )}
+                    <FirDocument
+                      title={title || "Cyber Incident Investigation Report"}
+                      reportId={draftReportId || "Information not available"}
+                      generatedAt={generatedAt || new Date().toISOString()}
+                      structuredReport={analysis?.structuredReport}
+                      rawDescription={description}
+                    />
                   </div>
                 </Card>
 

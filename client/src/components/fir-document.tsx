@@ -1,99 +1,454 @@
 import { cn } from "@/lib/utils";
 
+type TimelineEntry = {
+  time?: string;
+  event?: string;
+};
+
+type InvestigationReport = {
+  incidentType?: string;
+  description?: string;
+  executiveSummary?: Record<string, any>;
+  classification?: Record<string, any>;
+  entities?: Record<string, any>;
+  incidentTimeline?: TimelineEntry[];
+  technicalAnalysis?: Record<string, any>;
+  iocs?: Record<string, any>;
+  assetsAffected?: string[];
+  impactAssessment?: Record<string, any>;
+  evidenceSummary?: string[];
+  immediateActionsTaken?: string[];
+  recommendedNextSteps?: string[];
+  nextSteps?: string[];
+  firDraft?: string;
+  annexure?: string[];
+  aiConfidenceScore?: number;
+  generatedReportText?: string;
+  extractedDetails?: Record<string, any>;
+  guidance?: {
+    immediate?: string[];
+    security?: string[];
+    evidence?: string[];
+    nextSteps?: string[];
+  };
+};
+
 type FirDocumentProps = {
-  text?: string | null;
   title?: string;
+  reportId?: string | number;
+  generatedAt?: string;
+  structuredReport?: InvestigationReport | null;
+  rawDescription?: string;
   className?: string;
 };
 
-type FirBlock =
-  | { type: "heading"; label: string; value?: string }
-  | { type: "listItem"; value: string }
-  | { type: "paragraph"; value: string };
+const entityLabelMap: Record<string, string> = {
+  victimName: "Victim Name",
+  victim: "Victim",
+  organization: "Organization",
+  department: "Department",
+  designation: "Designation",
+  date: "Date",
+  time: "Time",
+  emailAddress: "Email Address",
+  email: "Email Address",
+  phoneNumber: "Phone Number",
+  mobileNumber: "Phone Number",
+  maliciousFileName: "Malicious File Name",
+  fileExtension: "File Extension",
+  domainNames: "Domain Names",
+  urls: "URLs",
+  ipAddresses: "IP Addresses",
+  walletAddress: "Wallet Address",
+  bankAccount: "Bank Account",
+  amountLost: "Amount Lost",
+  ransomAmount: "Ransom Amount",
+  networkLocation: "Network Location",
+  operatingSystem: "Operating System",
+  fileExtensionCreated: "File Extension Created",
+  threatActor: "Threat Actor",
+  suspect_details: "Suspect Details",
+};
 
-function parseFirBlocks(text: string): FirBlock[] {
-  const lines = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+const iocLabelMap: Record<string, string> = {
+  maliciousFileNames: "Malicious File Names",
+  fileExtensions: "File Extensions",
+  domains: "Domains",
+  urls: "URLs",
+  ipAddresses: "IP Addresses",
+  registryKeys: "Registry Keys",
+  hashes: "Hashes",
+  emailSubjects: "Email Subjects",
+  emailHeaders: "Email Headers",
+  suspiciousAttachments: "Suspicious Attachments",
+  walletAddresses: "Bitcoin Wallet Addresses",
+};
 
-  return lines.map((line) => {
-    const headingMatch = line.match(/^([^:]{1,48}):\s*(.*)$/);
-    if (headingMatch) {
-      const label = headingMatch[1].trim();
-      const value = headingMatch[2].trim();
+function titleCase(value: string): string {
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+}
 
-      if (label.length <= 48) {
-        return { type: "heading", label, value };
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return "Information not available";
+  if (typeof value === "string")
+    return value.trim() || "Information not available";
+  if (typeof value === "number")
+    return Number.isFinite(value) ? String(value) : "Information not available";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (Array.isArray(value)) {
+    const items = value
+      .map((item) => formatValue(item))
+      .filter((item) => item && item !== "Information not available");
+    return items.length > 0 ? items.join(", ") : "Information not available";
+  }
+  if (typeof value === "object") {
+    return (
+      Object.values(value as Record<string, unknown>)
+        .map((item) => formatValue(item))
+        .filter((item) => item && item !== "Information not available")
+        .join(", ") || "Information not available"
+    );
+  }
+  return String(value);
+}
+
+function toList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .flatMap((item) => {
+      if (typeof item === "string") return item.trim() ? [item.trim()] : [];
+      if (item && typeof item === "object") {
+        const typedItem = item as Record<string, any>;
+        const time = typedItem.time ? `${typedItem.time}`.trim() : "";
+        const event = typedItem.event ? `${typedItem.event}`.trim() : "";
+        const combined = [time, event].filter(Boolean).join(" - ");
+        if (combined) return [combined];
       }
-    }
+      const formatted = formatValue(item);
+      return formatted && formatted !== "Information not available"
+        ? [formatted]
+        : [];
+    })
+    .filter(Boolean);
+}
 
-    if (/^(\d+\.|[-*])\s+/.test(line)) {
-      return { type: "listItem", value: line.replace(/^(\d+\.|[-*])\s+/, "") };
-    }
+function toEntries(value: unknown): Array<[string, string]> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
 
-    return { type: "paragraph", value: line };
-  });
+  return Object.entries(value as Record<string, unknown>).flatMap(
+    ([key, item]) => {
+      const label = entityLabelMap[key] || iocLabelMap[key] || titleCase(key);
+      const formatted = formatValue(item);
+      if (!formatted || formatted === "Information not available") return [];
+      return [[label, formatted]];
+    },
+  );
+}
+
+function renderKeyValueSection(
+  title: string,
+  entries: Array<[string, string]>,
+  emptyFallback = "Information not available",
+) {
+  return (
+    <div className="report-section">
+      <h3>{title}</h3>
+      {entries.length > 0 ? (
+        <div className="report-key-values">
+          {entries.map(([label, value]) => (
+            <div key={`${label}-${value}`} className="report-key-value">
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="report-empty">{emptyFallback}</p>
+      )}
+    </div>
+  );
 }
 
 export function FirDocument({
-  text,
-  title = "Official FIR Draft",
+  title = "Cyber Incident Investigation Report",
+  reportId,
+  generatedAt,
+  structuredReport,
+  rawDescription,
   className,
 }: FirDocumentProps) {
-  if (!text) {
-    return null;
-  }
+  const report = structuredReport ?? {};
+  const incidentType = report.incidentType || "Information not available";
+  const severity =
+    report.classification?.severity ||
+    report.executiveSummary?.severityLevel ||
+    report.impactAssessment?.severityScore ||
+    "Information not available";
+  const confidenceScore =
+    typeof report.aiConfidenceScore === "number"
+      ? `${Math.round(report.aiConfidenceScore)}%`
+      : "Information not available";
 
-  const blocks = parseFirBlocks(text);
+  const complainant =
+    report.executiveSummary?.victim ||
+    report.entities?.victimName ||
+    report.entities?.victim ||
+    report.extractedDetails?.victimName ||
+    "Information not available";
+
+  const organization =
+    report.executiveSummary?.organization ||
+    report.entities?.organization ||
+    report.extractedDetails?.organization ||
+    "Information not available";
+
+  const generatedStamp = generatedAt
+    ? new Date(generatedAt).toLocaleString()
+    : "Information not available";
+
+  const coverDetails = [
+    ["Report ID", reportId ? String(reportId) : "Information not available"],
+    ["Generated Date & Time", generatedStamp],
+    ["Severity", severity],
+    ["Incident Category", incidentType],
+    ["Complainant", complainant],
+    ["Organization", organization],
+    ["AI Confidence Score", confidenceScore],
+  ] as Array<[string, string]>;
+
+  const executiveSummaryEntries = [
+    ["Incident Type", report.executiveSummary?.incidentType || incidentType],
+    ["Attack Vector", report.executiveSummary?.attackVector],
+    ["Severity Level", report.executiveSummary?.severityLevel || severity],
+    ["Date and Time", report.executiveSummary?.dateAndTime],
+    ["Victim", report.executiveSummary?.victim || complainant],
+    ["Organization", report.executiveSummary?.organization || organization],
+    ["Overall Impact", report.executiveSummary?.overallImpact],
+  ].filter(([, value]) => Boolean(value && `${value}`.trim())) as Array<
+    [string, string]
+  >;
+
+  const classificationEntries = [
+    ["Primary Attack", report.classification?.primaryAttack],
+    [
+      "Attack Types",
+      Array.isArray(report.classification?.attackTypes)
+        ? report.classification.attackTypes.join(", ")
+        : undefined,
+    ],
+    ["Initial Attack Vector", report.classification?.initialAttackVector],
+    ["Severity", report.classification?.severity || severity],
+  ].filter(([, value]) => Boolean(value && `${value}`.trim())) as Array<
+    [string, string]
+  >;
+
+  const entityEntries = toEntries(report.entities ?? report.extractedDetails);
+  const timelineItems = toList(report.incidentTimeline).map((item) => item);
+  const technicalEntries = toEntries(report.technicalAnalysis);
+  const iocEntries = toEntries(report.iocs);
+  const assetsAffected = toList(report.assetsAffected);
+  const impactEntries = toEntries(report.impactAssessment);
+  const evidenceSummary = toList(report.evidenceSummary);
+  const immediateActionsTaken = toList(report.immediateActionsTaken);
+  const recommendedSource = report.recommendedNextSteps?.length
+    ? report.recommendedNextSteps
+    : report.nextSteps;
+  const recommendedNextSteps = toList(recommendedSource);
+  const annexureItems = toList(report.annexure);
+  const firDraft =
+    report.firDraft ||
+    report.description ||
+    rawDescription ||
+    "Information not available";
 
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-border/60 bg-background/80 shadow-sm overflow-hidden",
-        className,
-      )}
-    >
-      <div className="border-b border-border/60 bg-muted/30 px-5 py-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-          CyberDesk
-        </p>
-        <h4 className="mt-1 text-lg font-bold text-foreground">{title}</h4>
-      </div>
+    <div className={cn("report-sheet", className)}>
+      <section className="report-cover">
+        <div className="report-cover-badge">
+          🛡️ Cyber Incident Investigation Report
+        </div>
+        <h1>{title}</h1>
+        <p className="report-cover-subtitle">Generated by CyberDesk AI</p>
+        <div className="report-cover-grid">
+          {coverDetails.map(([label, value]) => (
+            <div key={label} className="report-cover-item">
+              <span>{label}</span>
+              <strong>{value}</strong>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <div className="px-5 py-5 space-y-4 text-sm leading-7 text-foreground/90">
-        {blocks.map((block, index) => {
-          if (block.type === "heading") {
-            return (
-              <div key={`${block.label}-${index}`} className="space-y-1">
-                <p className="text-sm font-bold uppercase tracking-wider text-primary">
-                  {block.label}
-                </p>
-                {block.value ? (
-                  <p className="whitespace-pre-wrap text-foreground/85">
-                    {block.value}
-                  </p>
-                ) : null}
+      <section className="report-section">
+        <h2>1. Executive Summary</h2>
+        {renderKeyValueSection("Summary Overview", executiveSummaryEntries)}
+      </section>
+
+      <section className="report-section">
+        <h2>2. Incident Classification</h2>
+        {renderKeyValueSection("Classification", classificationEntries)}
+      </section>
+
+      <section className="report-section">
+        <h2>3. Entity Extraction</h2>
+        {entityEntries.length > 0 ? (
+          <div className="report-key-values report-key-values-grid">
+            {entityEntries.map(([label, value]) => (
+              <div key={`${label}-${value}`} className="report-key-value">
+                <span>{label}</span>
+                <strong>{value}</strong>
               </div>
-            );
-          }
+            ))}
+          </div>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
 
-          if (block.type === "listItem") {
-            return (
-              <div key={`${block.value}-${index}`} className="flex gap-3">
-                <span className="mt-2 h-2 w-2 rounded-full bg-primary/70" />
-                <p className="flex-1 whitespace-pre-wrap">{block.value}</p>
+      <section className="report-section">
+        <h2>4. Incident Timeline</h2>
+        {timelineItems.length > 0 ? (
+          <ol className="report-timeline">
+            {timelineItems.map((item) => (
+              <li key={item}>
+                <span className="report-timeline-bullet" />
+                <p>{item}</p>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
+
+      <section className="report-section">
+        <h2>5. Technical Analysis</h2>
+        {technicalEntries.length > 0 ? (
+          <div className="report-key-values">
+            {technicalEntries.map(([label, value]) => (
+              <div key={`${label}-${value}`} className="report-key-value">
+                <span>{label}</span>
+                <strong>{value}</strong>
               </div>
-            );
-          }
+            ))}
+          </div>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
 
-          return (
-            <p key={`${block.value}-${index}`} className="whitespace-pre-wrap">
-              {block.value}
-            </p>
-          );
-        })}
-      </div>
+      <section className="report-section">
+        <h2>6. Indicators of Compromise (IOCs)</h2>
+        {iocEntries.length > 0 ? (
+          <div className="report-key-values">
+            {iocEntries.map(([label, value]) => (
+              <div key={`${label}-${value}`} className="report-key-value">
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
+
+      <section className="report-section">
+        <h2>7. Assets Affected</h2>
+        {assetsAffected.length > 0 ? (
+          <ul className="report-list">
+            {assetsAffected.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
+
+      <section className="report-section">
+        <h2>8. Impact Assessment</h2>
+        {impactEntries.length > 0 ? (
+          <div className="report-key-values">
+            {impactEntries.map(([label, value]) => (
+              <div key={`${label}-${value}`} className="report-key-value">
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
+
+      <section className="report-section">
+        <h2>9. Evidence Summary</h2>
+        {evidenceSummary.length > 0 ? (
+          <ul className="report-list">
+            {evidenceSummary.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
+
+      <section className="report-section">
+        <h2>10. Immediate Actions Taken</h2>
+        {immediateActionsTaken.length > 0 ? (
+          <ul className="report-list">
+            {immediateActionsTaken.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
+
+      <section className="report-section">
+        <h2>11. Recommended Next Steps</h2>
+        {recommendedNextSteps.length > 0 ? (
+          <ul className="report-list">
+            {recommendedNextSteps.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
+
+      <section className="report-section report-section-fir">
+        <h2>12. FIR Draft</h2>
+        <div className="report-fir-draft">
+          {firDraft
+            .split(/\r?\n/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+        </div>
+      </section>
+
+      <section className="report-section">
+        <h2>13. Annexure</h2>
+        {annexureItems.length > 0 ? (
+          <ol className="report-numbered-list">
+            {annexureItems.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ol>
+        ) : (
+          <p className="report-empty">Information not available</p>
+        )}
+      </section>
     </div>
   );
 }

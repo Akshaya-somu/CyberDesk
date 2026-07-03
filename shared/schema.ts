@@ -1,5 +1,12 @@
-
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  jsonb,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -22,9 +29,9 @@ export const reports = pgTable("reports", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertReportSchema = createInsertSchema(reports).omit({ 
-  id: true, 
-  createdAt: true 
+export const insertReportSchema = createInsertSchema(reports).omit({
+  id: true,
+  createdAt: true,
 });
 
 export type Report = typeof reports.$inferSelect;
@@ -41,10 +48,41 @@ export type GenerateReportResponse = {
   structuredReport: {
     incidentType: string;
     description: string;
+    executiveSummary?: {
+      incidentType?: string;
+      attackVector?: string;
+      severityLevel?: string;
+      dateAndTime?: string;
+      victim?: string;
+      organization?: string;
+      overallImpact?: string;
+    };
+    classification?: {
+      primaryAttack?: string;
+      attackTypes?: string[];
+      initialAttackVector?: string;
+      severity?: string;
+    };
+    entities?: Record<string, any>;
+    incidentTimeline?: Array<{
+      time?: string;
+      event?: string;
+    }>;
+    technicalAnalysis?: Record<string, any>;
+    iocs?: Record<string, any>;
+    assetsAffected?: string[];
+    impactAssessment?: Record<string, any>;
+    evidenceSummary?: string[];
+    immediateActionsTaken?: string[];
+    recommendedNextSteps?: string[];
+    firDraft?: string;
+    annexure?: string[];
+    aiConfidenceScore?: number;
     modeOfAttack?: string;
     impact?: string;
     suggestedCategory?: string;
     nextSteps?: string[];
+    generatedReportText?: string;
     extractedDetails?: Record<string, any>;
     guidance?: {
       immediate: string[];
