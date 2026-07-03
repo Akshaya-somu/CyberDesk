@@ -1,10 +1,26 @@
 import type { Express, Request, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { chatStorage } from "./storage";
 
-const genAI = process.env.GEMINI_API_KEY
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const groqClient = process.env.GROQ_API_KEY
+  ? new OpenAI({
+      apiKey: process.env.GROQ_API_KEY,
+      baseURL: "https://api.groq.com/openai/v1",
+    })
   : null;
+
+const GROQ_MODEL = "llama-3.3-70b-versatile";
+
+const systemPrompt = `
+You are CyberGuard Assistant, a cybersecurity assistant.
+
+Provide:
+- Simple explanations
+- Safe cybersecurity advice
+- Clear step-by-step guidance
+- Beginner-friendly answers
+`;
 
 export function registerChatRoutes(app: Express): void {
   // Get all conversations
@@ -86,35 +102,34 @@ export function registerChatRoutes(app: Express): void {
         const messages =
           await chatStorage.getMessagesByConversation(conversationId);
 
-        const chatMessages = messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        }));
+        const chatMessages: ChatCompletionMessageParam[] = messages.map(
+          (m) => ({
+            role:
+              m.role === "assistant"
+                ? ("assistant" as const)
+                : ("user" as const),
+            content: m.content,
+          }),
+        );
 
-        if (!genAI) {
-          return res.status(503).json({ error: "Gemini not configured" });
+        if (!groqClient) {
+          return res.status(503).json({ error: "Groq AI not configured" });
         }
 
-        const model = genAI.getGenerativeModel({
-          model: "gemini-2.0-flash",
+        const completion = await groqClient.chat.completions.create({
+          model: GROQ_MODEL,
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...chatMessages,
+          ],
+          temperature: 0.4,
         });
 
-        const prompt = `
-You are CyberGuard Assistant, a cybersecurity assistant.
+        const fullResponse = completion.choices[0]?.message?.content;
 
-Provide:
-- Simple explanations
-- Safe cybersecurity advice
-- Clear step-by-step guidance
-- Beginner-friendly answers
-
-Conversation:
-${chatMessages.map((m) => `${m.role}: ${m.content}`).join("\n")}
-`;
-
-        const result = await model.generateContent(prompt);
-
-        const fullResponse = result.response.text();
+        if (!fullResponse) {
+          throw new Error("Empty response from Groq");
+        }
 
         // Save assistant response
         await chatStorage.createMessage(

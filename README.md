@@ -150,7 +150,7 @@ Create a `.env` file and configure the following:
 ```env
 DATABASE_URL=your_postgresql_connection_string
 SESSION_SECRET=your_secret_key
-GEMINI_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
 ```
 
 ---
@@ -177,7 +177,7 @@ Create a `.env` file:
 ```env
 DATABASE_URL=your_postgresql_connection_string
 SESSION_SECRET=your_secret_key
-GEMINI_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
 ```
 
 ### 🗄️ Setup Database
@@ -222,7 +222,7 @@ CyberDesk is deployed using:
 
 ## 🔮 Future Enhancements
 
-- 🤖 Enhanced Gemini-powered Cyber Assistant
+- 🤖 Enhanced Groq-powered Cyber Assistant
 - 🌍 Multi-language support
 - 📊 Advanced analytics dashboard
 - 📧 Email and SMS alert integration
