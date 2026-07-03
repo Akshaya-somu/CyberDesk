@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -8,52 +8,52 @@
   /* Slate & Blue Palette - Trustworthy & Technical */
   --background: 220 30% 98%;
   --foreground: 222 47% 11%;
-  
+
   --primary: 221 83% 53%;
   --primary-foreground: 210 40% 98%;
-  
+
   --secondary: 215 25% 27%;
   --secondary-foreground: 210 40% 98%;
-  
+
   --muted: 217 33% 17%;
   --muted-foreground: 215 20% 65%;
-  
+
   --accent: 199 89% 48%;
   --accent-foreground: 210 40% 98%;
-  
+
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
-  
+
   --border: 214 32% 91%;
   --input: 214 32% 91%;
   --ring: 221 83% 53%;
-  
+
   --radius: 0.75rem;
-  
-  --font-display: 'Outfit', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+
+  --font-display: "Outfit", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
 .dark {
   --background: 224 71% 4%;
   --foreground: 213 31% 91%;
-  
+
   --primary: 217 91% 60%;
   --primary-foreground: 222 47% 11%;
-  
+
   --secondary: 215 27% 17%;
   --secondary-foreground: 210 40% 98%;
-  
+
   --muted: 215 27% 17%;
   --muted-foreground: 215 20% 65%;
-  
+
   --accent: 199 89% 48%;
   --accent-foreground: 210 40% 98%;
-  
+
   --destructive: 0 63% 31%;
   --destructive-foreground: 210 40% 98%;
-  
+
   --border: 215 27% 17%;
   --input: 215 27% 17%;
   --ring: 217 91% 60%;
@@ -67,11 +67,17 @@
     @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
     font-family: var(--font-body);
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     @apply tracking-tight font-bold;
   }
-  code, pre {
+  code,
+  pre {
     font-family: var(--font-mono);
   }
 }
@@ -80,7 +86,7 @@
   .glass-card {
     @apply bg-card/80 backdrop-blur-md border border-border/50 shadow-xl;
   }
-  
+
   .glass-panel {
     @apply bg-background/60 backdrop-blur-xl border border-white/10 shadow-2xl;
   }
@@ -88,11 +94,11 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-accent;
   }
-  
+
   .btn-primary-glow {
     @apply relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 active:translate-y-0;
   }
-  
+
   .input-modern {
     @apply bg-background/50 border-2 border-input focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all duration-200;
   }
@@ -132,58 +138,98 @@
     top: 0;
     left: 0;
     right: 0;
+    min-height: 100vh;
     background: white;
     color: black;
-    font-family: 'Times New Roman', Times, serif;
+    font-family: "Times New Roman", Times, serif;
     font-size: 12pt;
-    line-height: 1.7;
+    line-height: 1.65;
   }
 
-  #fir-print-area .print-header {
-    text-align: center;
-    border-bottom: 2px solid black;
-    padding-bottom: 14pt;
-    margin-bottom: 16pt;
+  #fir-print-area .print-letter {
+    padding: 0;
   }
 
   #fir-print-area .print-header h1 {
-    font-size: 16pt;
+    font-size: 15pt;
     font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1pt;
-    margin: 0 0 4pt 0;
+    text-align: center;
+    margin: 0 0 18pt 0;
   }
 
-  #fir-print-area .print-header p {
-    font-size: 10pt;
-    color: #444;
-    margin: 0;
+  #fir-print-area .print-recipient {
+    margin-bottom: 16pt;
   }
 
   #fir-print-area .print-meta {
     display: flex;
     justify-content: space-between;
-    font-size: 10pt;
-    margin-bottom: 20pt;
-    padding-bottom: 10pt;
-    border-bottom: 1px solid #888;
+    gap: 12pt;
+    font-size: 11pt;
+    margin: 12pt 0 14pt;
+    flex-wrap: wrap;
   }
 
-  #fir-print-area .print-body {
-    white-space: pre-wrap;
+  #fir-print-area .print-subject {
+    margin: 0 0 18pt 0;
+  }
+
+  #fir-print-area .print-section {
+    margin: 16pt 0;
+  }
+
+  #fir-print-area .print-section h2 {
     font-size: 12pt;
-    line-height: 1.9;
-    color: black;
+    margin: 0 0 8pt 0;
+    font-weight: bold;
+  }
+
+  #fir-print-area p {
+    margin: 0 0 10pt 0;
     text-align: justify;
-    word-break: break-word;
+  }
+
+  #fir-print-area .print-paragraph {
+    margin-left: 0;
+  }
+
+  #fir-print-area .print-bullets,
+  #fir-print-area .print-numbered {
+    margin: 8pt 0 0 18pt;
+    padding: 0;
+  }
+
+  #fir-print-area .print-bullets li,
+  #fir-print-area .print-numbered li {
+    margin-bottom: 6pt;
+  }
+
+  #fir-print-area .print-recipient p,
+  #fir-print-area .print-meta span,
+  #fir-print-area .print-section p,
+  #fir-print-area .print-footer {
+    text-align: left;
   }
 
   #fir-print-area .print-footer {
-    margin-top: 48pt;
+    margin-top: 24pt;
     padding-top: 10pt;
     border-top: 1px solid #888;
-    font-size: 9pt;
-    color: #555;
-    text-align: center;
+    font-size: 10pt;
+  }
+
+  #fir-print-area .print-recipient,
+  #fir-print-area .print-footer,
+  #fir-print-area .print-section,
+  #fir-print-area .print-meta,
+  #fir-print-area .print-header {
+    break-inside: avoid;
+  }
+
+  #fir-print-area .print-section h2,
+  #fir-print-area .print-section p,
+  #fir-print-area .print-bullets,
+  #fir-print-area .print-numbered {
+    break-inside: avoid;
   }
 }

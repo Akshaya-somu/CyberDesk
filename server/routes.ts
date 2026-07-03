@@ -113,6 +113,43 @@ const INCIDENT_RESPONSE_STEPS: Record<string, any> = {
   },
 };
 
+function buildFirPrompt(description: string): string {
+  return `
+You are a Cyber Crime Reporting Assistant.
+Analyze the following incident description: "${description}"
+
+Extract and format the information into a structured JSON object according to the FIR (First Information Report) style.
+CRITICAL INSTRUCTION: Do NOT include placeholders like "[address]", "[date]", "[unknown]" or similar tags.
+If a detail is missing, use the phrase "Information not available at the time of reporting".
+
+The description field must read like an official FIR draft and must be easy to submit directly.
+Format it with clear section headings separated by blank lines, using this structure:
+To, The Officer-in-Charge, Cyber Crime Police Station.
+Subject: Complaint regarding [Incident Type].
+Complainant Details:
+Incident Summary:
+Chronological Description of the Incident:
+Financial Loss Details:
+Evidence List:
+Request for Action:
+Closing Statement:
+
+Write complete sentences under each heading. Keep the language formal, readable, and concise.
+Use line breaks between sections and avoid one long paragraph.
+
+JSON fields to include:
+- incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft, email_compromise].
+- description: The formatted FIR draft.
+- modeOfAttack: e.g. "SMS", "Phone Call" (if known).
+- impact: The loss or damage.
+- suggestedCategory: Broader category.
+- extractedDetails: A JSON object containing only keys that were explicitly mentioned (e.g., date, platform, suspect_details, loss_amount).
+- nextSteps: AI-generated specific response instructions based on the incident.
+
+Respond ONLY with the valid JSON object.
+`;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express,
@@ -156,32 +193,7 @@ export async function registerRoutes(
     try {
       const { description } = api.reports.generate.input.parse(req.body);
 
-      const prompt = `
-        You are a Cyber Crime Reporting Assistant.
-        Analyze the following incident description: "${description}"
-
-        Extract and format the information into a structured JSON object according to the FIR (First Information Report) style.
-        CRITICAL INSTRUCTION: Do NOT include placeholders like "[address]", "[date]", "[unknown]" or similar tags. 
-        If a detail is missing, take some likely context or use the phrase "Information not available at the time of reporting".
-
-        JSON fields to include:
-        - incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft, email_compromise].
-        - description: A formal FIR summary in the following style:
-          "To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding [Incident Type]. I, [Complainant Name if available], wish to report a fraudulent incident..."
-          Follow the format: 
-          1. Incident Details (Date & Time, Mode of Communication, Suspect Details)
-          2. Chronological Description of the Incident
-          3. Financial Loss Details (if any)
-          4. Evidence List
-          5. Request for Action
-        - modeOfAttack: e.g. "SMS", "Phone Call" (if known).
-        - impact: The loss or damage.
-        - suggestedCategory: Broader category.
-        - extractedDetails: A JSON object containing only keys that were explicitly mentioned (e.g., date, platform, suspect_details, loss_amount).
-        - nextSteps: AI-generated specific response instructions based on the incident.
-
-        Respond ONLY with the valid JSON object.
-      `;
+      const prompt = buildFirPrompt(description);
 
       let structuredData: any;
       if (openai) {
@@ -324,32 +336,7 @@ export async function registerRoutes(
     try {
       const input = api.reports.create.input.parse(req.body);
 
-      const prompt = `
-        You are a Cyber Crime Reporting Assistant.
-        Analyze the following incident description: "${input.rawDescription}"
-
-        Extract and format the information into a structured JSON object according to the FIR (First Information Report) style.
-        CRITICAL INSTRUCTION: Do NOT include placeholders like "[address]", "[date]", "[unknown]" or similar tags. 
-        If a detail is missing, take some likely context or use the phrase "Information not available at the time of reporting".
-
-        JSON fields to include:
-        - incidentType: One of [phishing, financial_fraud, account_hacking, identity_theft, email_compromise].
-        - description: A formal FIR summary in the following style:
-          "To, The Officer-in-Charge, Cyber Crime Police Station. Subject: Complaint regarding [Incident Type]. I, [Complainant Name if available], wish to report a fraudulent incident..."
-          Follow the format: 
-          1. Incident Details (Date & Time, Mode of Communication, Suspect Details)
-          2. Chronological Description of the Incident
-          3. Financial Loss Details (if any)
-          4. Evidence List
-          5. Request for Action
-        - modeOfAttack: e.g. "SMS", "Phone Call" (if known).
-        - impact: The loss or damage.
-        - suggestedCategory: Broader category.
-        - extractedDetails: A JSON object containing only keys that were explicitly mentioned (e.g., date, platform, suspect_details, loss_amount).
-        - nextSteps: AI-generated specific response instructions based on the incident.
-
-        Respond ONLY with the valid JSON object.
-      `;
+      const prompt = buildFirPrompt(input.rawDescription);
 
       let structuredData: any = {};
       if (openai) {

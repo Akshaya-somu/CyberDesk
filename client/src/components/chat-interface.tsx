@@ -21,8 +21,9 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  
-  const { data: history, isLoading: isHistoryLoading } = useChatHistory(conversationId);
+
+  const { data: history, isLoading: isHistoryLoading } =
+    useChatHistory(conversationId);
   const { mutateAsync: createConversation } = useCreateConversation();
 
   useEffect(() => {
@@ -64,38 +65,51 @@ export function ChatInterface() {
 
       if (!res.ok) throw new Error("Failed to send message");
 
+      const contentType = res.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        const data = await res.json();
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: data.content || "" },
+        ]);
+        return;
+      }
+
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = "";
 
-      if (reader) {
-        setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-        
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+      if (!reader) {
+        throw new Error("No response stream available");
+      }
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n\n");
-          
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.content) {
-                  assistantMessage += data.content;
-                  setMessages((prev) => {
-                    const newMessages = [...prev];
-                    const lastMsg = newMessages[newMessages.length - 1];
-                    if (lastMsg.role === "assistant") {
-                      lastMsg.content = assistantMessage;
-                    }
-                    return newMessages;
-                  });
-                }
-              } catch (e) {
-                console.error("Error parsing SSE", e);
+      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.content) {
+                assistantMessage += data.content;
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  const lastMsg = newMessages[newMessages.length - 1];
+                  if (lastMsg.role === "assistant") {
+                    lastMsg.content = assistantMessage;
+                  }
+                  return newMessages;
+                });
               }
+            } catch (e) {
+              console.error("Error parsing SSE", e);
             }
           }
         }
@@ -117,7 +131,9 @@ export function ChatInterface() {
           </div>
           <div>
             <h3 className="font-semibold text-sm">CyberGuard Assistant</h3>
-            <p className="text-xs text-muted-foreground">Always online • AI Powered</p>
+            <p className="text-xs text-muted-foreground">
+              Always online • AI Powered
+            </p>
           </div>
         </div>
         <div className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full flex items-center gap-1">
@@ -134,21 +150,29 @@ export function ChatInterface() {
               <p>How can I help you with your security concerns today?</p>
             </div>
           )}
-          
+
           {messages.map((msg, i) => (
             <div
               key={i}
               className={cn(
                 "flex gap-4 max-w-[85%]",
-                msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
+                msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto",
               )}
             >
-              <Avatar className={cn(
-                "w-8 h-8 border",
-                msg.role === "user" ? "bg-primary text-primary-foreground border-primary" : "bg-muted border-border"
-              )}>
+              <Avatar
+                className={cn(
+                  "w-8 h-8 border",
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted border-border",
+                )}
+              >
                 <AvatarFallback>
-                  {msg.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                  {msg.role === "user" ? (
+                    <User className="w-4 h-4" />
+                  ) : (
+                    <Bot className="w-4 h-4" />
+                  )}
                 </AvatarFallback>
               </Avatar>
               <div
@@ -156,7 +180,7 @@ export function ChatInterface() {
                   "p-3 rounded-2xl text-sm leading-relaxed shadow-sm",
                   msg.role === "user"
                     ? "bg-primary text-primary-foreground rounded-tr-sm"
-                    : "bg-card border border-border rounded-tl-sm text-foreground"
+                    : "bg-card border border-border rounded-tl-sm text-foreground",
                 )}
               >
                 {msg.content}
@@ -166,7 +190,9 @@ export function ChatInterface() {
           {isTyping && (
             <div className="flex gap-4 mr-auto max-w-[85%]">
               <Avatar className="w-8 h-8 bg-muted border border-border">
-                <AvatarFallback><Bot className="w-4 h-4" /></AvatarFallback>
+                <AvatarFallback>
+                  <Bot className="w-4 h-4" />
+                </AvatarFallback>
               </Avatar>
               <div className="bg-card border border-border p-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1 h-10">
                 <div className="w-2 h-2 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
@@ -179,7 +205,10 @@ export function ChatInterface() {
         </div>
       </ScrollArea>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t border-border/50 bg-muted/30">
+      <form
+        onSubmit={handleSubmit}
+        className="p-4 border-t border-border/50 bg-muted/30"
+      >
         <div className="flex gap-3">
           <Input
             value={input}
@@ -188,13 +217,17 @@ export function ChatInterface() {
             className="bg-background border-border/50 focus:border-primary/50"
             disabled={isTyping}
           />
-          <Button 
-            type="submit" 
-            size="icon" 
+          <Button
+            type="submit"
+            size="icon"
             disabled={!input.trim() || isTyping || !conversationId}
             className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
           >
-            {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {isTyping ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </div>
       </form>

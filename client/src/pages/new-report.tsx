@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { FirDocument } from "@/components/fir-document";
 
 type Step = "input" | "processing" | "review";
 
@@ -208,14 +209,10 @@ export default function NewReport() {
 
                   <div className="space-y-6">
                     {analysis.structuredReport.description && (
-                      <div className="bg-muted/30 p-4 rounded-lg border border-border/50">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
-                          Dynamic Official Report
-                        </h4>
-                        <pre className="text-sm font-mono whitespace-pre-wrap text-foreground/80 bg-background/50 p-4 rounded border border-border/30">
-                          {analysis.structuredReport.description}
-                        </pre>
-                      </div>
+                      <FirDocument
+                        title="Dynamic Official Report"
+                        text={analysis.structuredReport.description}
+                      />
                     )}
                   </div>
                 </Card>
