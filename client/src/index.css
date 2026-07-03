@@ -203,7 +203,7 @@
 
   #fir-print-area .report-section {
     margin: 16pt 0;
-    break-inside: avoid;
+    break-inside: auto;
   }
 
   #fir-print-area .report-section h2 {
@@ -233,7 +233,7 @@
   #fir-print-area .report-key-value {
     border: 1px solid #888;
     padding: 8pt 10pt;
-    break-inside: avoid;
+    break-inside: auto;
   }
 
   #fir-print-area .report-key-value span {
@@ -293,18 +293,6 @@
 
   #fir-print-area .report-fir-draft p {
     margin-bottom: 6pt;
-  }
-
-  #fir-print-area .report-sheet,
-  #fir-print-area .report-cover,
-  #fir-print-area .report-section,
-  #fir-print-area .report-key-values,
-  #fir-print-area .report-key-value,
-  #fir-print-area .report-fir-draft,
-  #fir-print-area .report-list,
-  #fir-print-area .report-numbered-list,
-  #fir-print-area .report-timeline {
-    break-inside: avoid;
   }
 
   #fir-print-area .report-section + .report-section {
