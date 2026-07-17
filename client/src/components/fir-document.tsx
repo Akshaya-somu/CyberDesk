@@ -154,8 +154,9 @@ function renderKeyValueSection(
   emptyFallback = "Information not available",
 ) {
   return (
-    <div className="report-section">
+    <>
       <h3>{title}</h3>
+
       {entries.length > 0 ? (
         <div className="report-key-values">
           {entries.map(([label, value]) => (
@@ -168,7 +169,7 @@ function renderKeyValueSection(
       ) : (
         <p className="report-empty">{emptyFallback}</p>
       )}
-    </div>
+    </>
   );
 }
 
@@ -226,7 +227,6 @@ export function FirDocument({
     ["Date and Time", report.executiveSummary?.dateAndTime],
     ["Victim", report.executiveSummary?.victim || complainant],
     ["Organization", report.executiveSummary?.organization || organization],
-    ["Overall Impact", report.executiveSummary?.overallImpact],
   ].filter(([, value]) => Boolean(value && `${value}`.trim())) as Array<
     [string, string]
   >;
@@ -285,6 +285,14 @@ export function FirDocument({
       <section className="report-section">
         <h2>1. Executive Summary</h2>
         {renderKeyValueSection("Summary Overview", executiveSummaryEntries)}
+        {report.executiveSummary?.overallImpact && (
+          <>
+            <h3>Overall Impact</h3>
+            <p className="report-empty">
+              {report.executiveSummary.overallImpact}
+            </p>
+          </>
+        )}
       </section>
 
       <section className="report-section">

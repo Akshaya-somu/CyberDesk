@@ -477,7 +477,7 @@ async function analyzeSegmentGemini(
     },
   }));
 
-  const response = await ai.models.generateContent({
+a  const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
 
     contents: [

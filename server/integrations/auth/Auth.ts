@@ -1,7 +1,7 @@
 import type { Express, RequestHandler } from "express";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { hash, compare } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { authStorage } from "./storage";
 
@@ -43,7 +43,7 @@ async function ensureAdmin() {
   const existing = await authStorage.getUserByUsername("admin");
 
   if (!existing) {
-    const passwordHash = await hash("admin123", 10);
+    const passwordHash = await bcrypt.hash("admin123", 10);
 
     await authStorage.upsertUser({
       id: uuidv4(),
@@ -82,7 +82,7 @@ export async function loginHandler(req: any, res: any) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const ok = await compare(password, user.passwordHash);
+    const ok = await bcrypt.compare(password, user.passwordHash);
 
     if (!ok) {
       return res.status(401).json({ message: "Invalid credentials" });
