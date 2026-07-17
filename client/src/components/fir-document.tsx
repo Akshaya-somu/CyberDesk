@@ -92,25 +92,20 @@ function titleCase(value: string): string {
 }
 
 function formatValue(value: unknown): string {
-  if (value === null || value === undefined) return "Information not available";
-  if (typeof value === "string")
-    return value.trim() || "Information not available";
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value.trim();
   if (typeof value === "number")
-    return Number.isFinite(value) ? String(value) : "Information not available";
+    return Number.isFinite(value) ? String(value) : "";
   if (typeof value === "boolean") return value ? "Yes" : "No";
   if (Array.isArray(value)) {
-    const items = value
-      .map((item) => formatValue(item))
-      .filter((item) => item && item !== "Information not available");
-    return items.length > 0 ? items.join(", ") : "Information not available";
+    const items = value.map((item) => formatValue(item)).filter(Boolean);
+    return items.length > 0 ? items.join(", ") : "";
   }
   if (typeof value === "object") {
-    return (
-      Object.values(value as Record<string, unknown>)
-        .map((item) => formatValue(item))
-        .filter((item) => item && item !== "Information not available")
-        .join(", ") || "Information not available"
-    );
+    return Object.values(value as Record<string, unknown>)
+      .map((item) => formatValue(item))
+      .filter(Boolean)
+      .join(", ");
   }
   return String(value);
 }
@@ -182,33 +177,33 @@ export function FirDocument({
   className,
 }: FirDocumentProps) {
   const report = structuredReport ?? {};
-  const incidentType = report.incidentType || "Information not available";
+  const incidentType = report.incidentType || "";
   const severity =
     report.classification?.severity ||
     report.executiveSummary?.severityLevel ||
     report.impactAssessment?.severityScore ||
-    "Information not available";
+    "";
   const confidenceScore =
     typeof report.aiConfidenceScore === "number"
       ? `${Math.round(report.aiConfidenceScore)}%`
-      : "Information not available";
+      : "";
 
   const complainant =
     report.executiveSummary?.victim ||
     report.entities?.victimName ||
     report.entities?.victim ||
     report.extractedDetails?.victimName ||
-    "Information not available";
+    "";
 
   const organization =
     report.executiveSummary?.organization ||
     report.entities?.organization ||
     report.extractedDetails?.organization ||
-    "Information not available";
+    "";
 
   const generatedStamp = generatedAt
     ? new Date(generatedAt).toLocaleString()
-    : "Information not available";
+    : "";
 
   const coverDetails = [
     ["Report ID", reportId ? String(reportId) : "Information not available"],
@@ -259,10 +254,7 @@ export function FirDocument({
   const recommendedNextSteps = toList(recommendedSource);
   const annexureItems = toList(report.annexure);
   const firDraft =
-    report.firDraft ||
-    report.description ||
-    rawDescription ||
-    "Information not available";
+    report.firDraft || report.description || rawDescription || "";
 
   return (
     <div className={cn("report-sheet", className)}>
